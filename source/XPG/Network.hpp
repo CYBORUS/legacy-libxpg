@@ -11,6 +11,7 @@
 
 #if defined(XPG_OS_WINDOWS)
 #   include <winsock2.h>
+    typedef long ssize_t;
     typedef int socklen_t;
 #elif defined(XPG_OS_UNIX)
 #   include <sys/socket.h>

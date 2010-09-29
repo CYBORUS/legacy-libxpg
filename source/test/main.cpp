@@ -52,7 +52,7 @@ void client()
     int bytes_sent, buffer_length;
     char buffer[200];
 
-    buffer_length = snprintf(buffer, sizeof buffer, "Hello World!") + 1;
+    buffer_length = sprintf(buffer, "Hello World!") + 1;
     printf("buffer_length = %d\n", buffer_length);
 
     sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
