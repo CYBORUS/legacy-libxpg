@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="XPG (ubu64)" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/ubu64" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+					<Add directory="../.." />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/ubu64" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add directory="../../XPG/glew" />
+		</Compiler>
+		<Linker>
+			<Add option="-pthread" />
+			<Add library="GL" />
+			<Add library="X11" />
+		</Linker>
+		<Unit filename="../../XPG/DataTypes.hpp" />
+		<Unit filename="../../XPG/Display.hpp" />
+		<Unit filename="../../XPG/Matrix3D.hpp" />
+		<Unit filename="../../XPG/Module.hpp" />
+		<Unit filename="../../XPG/Mutex.hpp" />
+		<Unit filename="../../XPG/Network.hpp" />
+		<Unit filename="../../XPG/OperatingSystems.hpp" />
+		<Unit filename="../../XPG/Surface.hpp" />
+		<Unit filename="../../XPG/Thread.hpp" />
+		<Unit filename="../../XPG/Timer.hpp" />
+		<Unit filename="../../XPG/Vector3D.hpp" />
+		<Unit filename="../../XPG/core/Module.cpp" />
+		<Unit filename="../../XPG/core/Surface.cpp" />
+		<Unit filename="../../XPG/glew/glew.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../XPG/linux/Display.cpp" />
+		<Unit filename="../../XPG/unix/Mutex.cpp" />
+		<Unit filename="../../XPG/unix/Network.cpp" />
+		<Unit filename="../../XPG/unix/Thread.cpp" />
+		<Unit filename="../../XPG/unix/Timer.cpp" />
+		<Unit filename="../../test/TestModule.cpp" />
+		<Unit filename="../../test/TestModule.h" />
+		<Unit filename="../../test/main.cpp" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
