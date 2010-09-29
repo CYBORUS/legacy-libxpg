@@ -1,3 +1,8 @@
+/**
+ *  This exists for the sole purpose of running tests. It should contain
+ *  absolutely no OS-specific code (without proper #ifdef wrappers, anyway).
+ */
+
 #include <XPG/Network.hpp>
 #include <XPG/Thread.hpp>
 #include <XPG/Mutex.hpp>
