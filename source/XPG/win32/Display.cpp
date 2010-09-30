@@ -37,7 +37,7 @@ namespace XPG
     }
 
     void Context::create(int32u inWidth, int32u inHeight, int32u inDepth,
-                         int32u inFlags)
+        int32u inFlags)
     {
         if (mWidth) return;
 
@@ -70,7 +70,7 @@ namespace XPG
             WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, mWidth, mHeight, NULL, NULL,
             mData->hInstance, NULL);
 
-        mData->hdc = GetDC(mData->hWnd); // Get the device context for our window
+        mData->hdc = GetDC(mData->hWnd);
 
         PIXELFORMATDESCRIPTOR pfd;
         memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR));
@@ -78,69 +78,81 @@ namespace XPG
         pfd.dwFlags = PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL |
             PFD_DRAW_TO_WINDOW;
         pfd.iPixelType = PFD_TYPE_RGBA;
-        pfd.cColorBits = mDepth; // Give us 32 bits of color information (the higher, the more colors)
-        pfd.cDepthBits = 32; // Give us 32 bits of depth information (the higher, the more depth levels)
-        pfd.iLayerType = PFD_MAIN_PLANE; // Set the layer of the PFD
+        pfd.cColorBits = mDepth;
+        pfd.cDepthBits = 32;
+        pfd.iLayerType = PFD_MAIN_PLANE;
 
-        int nPixelFormat = ChoosePixelFormat(mData->hdc, &pfd); // Check if our PFD is valid and get a pixel format back
-        if (nPixelFormat == 0) // If it fails
+        int nPixelFormat = ChoosePixelFormat(mData->hdc, &pfd);
+        if (nPixelFormat == 0)
         {
-            cerr << "failed ChoosePixelFormat(hdc, &pfd)" << endl;
+            cerr << "failed ChoosePixelFormat" << endl;
+            mWidth = 0;
+            mHeight = 0;
+            mDepth = 0;
             return;
         }
 
-        bool bResult = SetPixelFormat(mData->hdc, nPixelFormat, &pfd); // Try and set the pixel format based on our PFD
-        if (!bResult) return;
+        if (!SetPixelFormat(mData->hdc, nPixelFormat, &pfd))
+        {
+            cerr << "failed SetPixelFormat" << endl;
+            mWidth = 0;
+            mHeight = 0;
+            mDepth = 0;
+            return;
+        }
 
-        HGLRC tempOpenGLContext = wglCreateContext(mData->hdc); // Create an OpenGL 2.1 context for our device context
-        wglMakeCurrent(mData->hdc, tempOpenGLContext); // Make the OpenGL 2.1 context current and active
+        HGLRC tempOpenGLContext = wglCreateContext(mData->hdc);
+        wglMakeCurrent(mData->hdc, tempOpenGLContext);
 
-        GLenum e = glewInit(); // Enable GLEW
-        if (e != GLEW_OK) // If GLEW fails
+        GLenum e = glewInit();
+        if (e != GLEW_OK)
         {
             cerr << "failed to init GLEW" << endl;
             return;
         }
 
         int attributes[] = {
-            WGL_CONTEXT_MAJOR_VERSION_ARB, 3, // Set the MAJOR version of OpenGL to 3
-            WGL_CONTEXT_MINOR_VERSION_ARB, 0, // Set the MINOR version of OpenGL to 2
-            //WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB, // Set our OpenGL context to be forward compatible
+            WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+            WGL_CONTEXT_MINOR_VERSION_ARB, 0,
+            //WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
             0
         };
 
-        if (wglewIsSupported("WGL_ARB_create_context") == 1) { // If the OpenGL 3.x context creation extension is available
-            mData->hrc = wglCreateContextAttribsARB(mData->hdc, NULL, attributes); // Create and OpenGL 3.x context based on the given attributes
-            wglMakeCurrent(NULL, NULL); // Remove the temporary context from being active
-            wglDeleteContext(tempOpenGLContext); // Delete the temporary OpenGL 2.1 context
-            wglMakeCurrent(mData->hdc, mData->hrc); // Make our OpenGL 3.0 context current
-            cerr << "replacing context with OGL 3.0" << endl;
+        if (wglewIsSupported("WGL_ARB_create_context") == 1)
+        {
+            mData->hrc = wglCreateContextAttribsARB(mData->hdc, NULL,
+                attributes);
+            wglMakeCurrent(NULL, NULL);
+            wglDeleteContext(tempOpenGLContext);
+            wglMakeCurrent(mData->hdc, mData->hrc);
+            cerr << "replacing context with OGL 3" << endl;
         }
-        else {
-            cerr << "resorting to OGL 2.1 context" << endl;
-            mData->hrc = tempOpenGLContext; // If we didn't have support for OpenGL 3.x and up, use the OpenGL 2.1 context
+        else
+        {
+            cerr << "resorting to legacy context" << endl;
+            mData->hrc = tempOpenGLContext;
         }
 
-        int glVersion[2] = {-1, -1}; // Set some default values for the version
-        glGetIntegerv(GL_MAJOR_VERSION, glVersion); // Get back the OpenGL MAJOR version we are using
-        glGetIntegerv(GL_MINOR_VERSION, glVersion + 1); // Get back the OpenGL MAJOR version we are using
+        int glVersion[2] = {-1, -1};
+        glGetIntegerv(GL_MAJOR_VERSION, glVersion);
+        glGetIntegerv(GL_MINOR_VERSION, glVersion + 1);
 
-
-        cerr << "Using OpenGL: " << glVersion[0] << "." << glVersion[1] << endl; // Output which version of OpenGL we are using
+        cerr << "Using OpenGL: " << glVersion[0] << "." << glVersion[1] << endl;
 
         ShowWindow(mData->hWnd, SW_SHOW);
         UpdateWindow(mData->hWnd);
 
-        glViewport(0, 0, mWidth, mHeight); // Set the viewport size to fill the window
+        glViewport(0, 0, mWidth, mHeight);
     }
 
     void Context::destroy()
     {
         if (mWidth)
         {
-            wglMakeCurrent(mData->hdc, 0); // Remove the rendering context from our device context
-            wglDeleteContext(mData->hrc); // Delete our rendering context
-            ReleaseDC(mData->hWnd, mData->hdc); // Release the device context from our window
+            wglMakeCurrent(mData->hdc, 0);
+            wglDeleteContext(mData->hrc);
+            ReleaseDC(mData->hWnd, mData->hdc);
+            DestroyWindow(mData->hWnd);
             mWidth = 0;
             mHeight = 0;
             mDepth = 0;
@@ -162,10 +174,10 @@ namespace XPG
         {
             MSG msg;
             if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-            {   // If we have a message to process, process it
+            {
                 if (msg.message == WM_QUIT)
                 {
-                    inModule->stopRunning(); // Set running to false if we have a message to quit
+                    inModule->stopRunning();
                 }
                 else
                 {
@@ -176,9 +188,9 @@ namespace XPG
                 }
             }
             else
-            {   // If we don't have a message to process
+            {
                 inModule->onDisplay();
-                SwapBuffers(mData->hdc); // Swap buffers so we can see our rendering
+                SwapBuffers(mData->hdc);
             }
         }
     }
@@ -193,6 +205,11 @@ namespace XPG
             SetWindowText(mData->hWnd, mData->title);
             /// TODO: add error checking
         }
+    }
+
+    void Context::setIconTitle(const char* inTitle)
+    {
+        /// unavailable in Win32 (?)
     }
 
     /// /// ///
@@ -221,7 +238,6 @@ namespace XPG
 
             case WM_LBUTTONUP:
             {
-                //MessageBox(hWnd, "Greetings from TheBuzzSaw", "Welcome", MB_OK);
                 cout << "mouse LButton up" << endl;
                 break;
             }
@@ -258,18 +274,6 @@ namespace XPG
             {
                 //http://msdn.microsoft.com/en-us/library/ms645617%28v=VS.85%29.aspx
                 cout << "mouse wheel: " << GET_WHEEL_DELTA_WPARAM(wparam) << endl;
-                break;
-            }
-
-            //case WM_PAINT:
-            {
-                PAINTSTRUCT ps;
-                HDC dc;
-                RECT r;
-                GetClientRect(hWnd,&r);
-                dc=BeginPaint(hWnd,&ps);
-                DrawText(dc,"Hello World",-1,&r,DT_SINGLELINE|DT_CENTER|DT_VCENTER);
-                EndPaint(hWnd,&ps);
                 break;
             }
 
@@ -313,8 +317,7 @@ namespace XPG
                 glViewport(0, 0, *activeWidth, *activeHeight);
                 activeModule->onResize(*activeWidth, *activeHeight);
                 activeModule->onDisplay();
-                SwapBuffers(activeHDC); // Swap buffers so we can see our rendering
-
+                SwapBuffers(activeHDC);
 
                 // http://msdn.microsoft.com/en-us/library/ms632646%28v=VS.85%29.aspx
                 switch (wparam)
@@ -349,7 +352,7 @@ namespace XPG
             }
 
             case WM_DESTROY:
-                PostQuitMessage(0);
+                //PostQuitMessage(0);
                 break;
 
             default:
