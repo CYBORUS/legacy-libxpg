@@ -1,8 +1,3 @@
-/**
- *  This exists for the sole purpose of running tests. It should contain
- *  absolutely no OS-specific code (without proper #ifdef wrappers, anyway).
- */
-
 #include <XPG/Network.hpp>
 #include <XPG/Thread.hpp>
 #include <XPG/Mutex.hpp>
@@ -52,7 +47,7 @@ void client()
     int bytes_sent, buffer_length;
     char buffer[200];
 
-    buffer_length = sprintf(buffer, "Hello World!") + 1;
+    buffer_length = snprintf(buffer, sizeof buffer, "Hello World!") + 1;
     printf("buffer_length = %d\n", buffer_length);
 
     sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -160,9 +155,18 @@ int main(int argc, char** argv)
     cout << v << endl;
     cout << w << endl;
 
-    XPG::Context c;
-    c.create(800, 600, 32);
     TestModule tm;
+
+    XPG::Context c;
+    c.create(800, 600);
+    c.setWindowTitle("XPG OpenGL 3");
+    c.setIconTitle("XPG-OGL3");
+    c.runModule(&tm);
+    c.destroy();
+
+    c.create(1024, 768);
+    c.setWindowTitle("XPG Round 2");
+    c.setIconTitle("XPG-R2");
     c.runModule(&tm);
 
     return 0;

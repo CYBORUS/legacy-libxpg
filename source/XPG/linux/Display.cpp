@@ -2,26 +2,36 @@
 
 #include <GL/glew.h>
 #include <GL/glxew.h>
+#include <X11/Xatom.h>
 
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
-
 #include <iostream>
 using namespace std;
 
 namespace XPG
 {
-    void EarlyInitGLXfnPointers()
+    void SetGLXFunctionPointers()
     {
         static bool done = false;
         if (done) return;
-        glGenVertexArraysAPPLE = (void(*)(GLsizei, const GLuint*))glXGetProcAddressARB((GLubyte*)"glGenVertexArrays");
-        glBindVertexArrayAPPLE = (void(*)(const GLuint))glXGetProcAddressARB((GLubyte*)"glBindVertexArray");
-        glDeleteVertexArraysAPPLE = (void(*)(GLsizei, const GLuint*))glXGetProcAddressARB((GLubyte*)"glGenVertexArrays");
-        glXCreateContextAttribsARB = (GLXContext(*)(Display* dpy, GLXFBConfig config, GLXContext share_context, Bool direct, const int *attrib_list))glXGetProcAddressARB((GLubyte*)"glXCreateContextAttribsARB");
-        glXChooseFBConfig = (GLXFBConfig*(*)(Display *dpy, int screen, const int *attrib_list, int *nelements))glXGetProcAddressARB((GLubyte*)"glXChooseFBConfig");
-        glXGetVisualFromFBConfig = (XVisualInfo*(*)(Display *dpy, GLXFBConfig config))glXGetProcAddressARB((GLubyte*)"glXGetVisualFromFBConfig");
+        glGenVertexArraysAPPLE = (void(*)(GLsizei, const GLuint*))
+            glXGetProcAddressARB((GLubyte*)"glGenVertexArrays");
+        glBindVertexArrayAPPLE = (void(*)(const GLuint))
+            glXGetProcAddressARB((GLubyte*)"glBindVertexArray");
+        glDeleteVertexArraysAPPLE = (void(*)(GLsizei, const GLuint*))
+            glXGetProcAddressARB((GLubyte*)"glGenVertexArrays");
+
+        glXCreateContextAttribsARB = (GLXContext(*)(Display* dpy,
+            GLXFBConfig config, GLXContext share_context, Bool direct,
+            const int *attrib_list))glXGetProcAddressARB
+            ((GLubyte*)"glXCreateContextAttribsARB");
+        glXChooseFBConfig = (GLXFBConfig*(*)(Display *dpy, int screen,
+            const int *attrib_list, int *nelements))
+            glXGetProcAddressARB((GLubyte*)"glXChooseFBConfig");
+        glXGetVisualFromFBConfig = (XVisualInfo*(*)(Display *dpy,
+            GLXFBConfig config))glXGetProcAddressARB
+            ((GLubyte*)"glXGetVisualFromFBConfig");
         done = true;
     }
 
@@ -32,21 +42,24 @@ namespace XPG
         Window window;
     };
 
-    Context::Context() : mData(NULL)
+    Context::Context() : mWidth(0), mHeight(0), mDepth(0)
     {
+        mData = new PrivateData;
     }
 
     Context::~Context()
     {
         destroy();
+        delete mData;
     }
 
     void Context::create(int32u inWidth, int32u inHeight, int32u inDepth,
         int32u inFlags)
     {
-        if (mData) return;
-
-        mData = new PrivateData;
+        // mWidth will be set to a non-zero value if this context is already in
+        // use. mHeight and mDepth will be set as well, but mWidth is checked
+        // everywhere simply to be consistent.
+        if (mWidth) return;
 
         mWidth = inWidth;
         mHeight = inHeight;
@@ -55,51 +68,46 @@ namespace XPG
 
         XSetWindowAttributes winAttribs;
         GLint winmask;
-        GLint nMajorVer = 0;
-        GLint nMinorVer = 0;
-        XVisualInfo *visualInfo;
-        GLXFBConfig *fbConfigs;
+        GLint MajorGLX = 0;
+        GLint MinorGLX = 0;
+        XVisualInfo* visualInfo;
+        GLXFBConfig* fbConfigs;
         int numConfigs = 0;
         static int fbAttribs[] =
-        {
-            GLX_RENDER_TYPE,   GLX_RGBA_BIT,
-            GLX_X_RENDERABLE,  True,
-            GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
-            GLX_DOUBLEBUFFER,  True,
-            GLX_RED_SIZE,      8,
-            GLX_BLUE_SIZE,     8,
-            GLX_GREEN_SIZE,    8,
-            0
-        };
+            {
+                GLX_RENDER_TYPE,   GLX_RGBA_BIT,
+                GLX_X_RENDERABLE,  True,
+                GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
+                GLX_DOUBLEBUFFER,  True,
+                GLX_RED_SIZE,      8,
+                GLX_BLUE_SIZE,     8,
+                GLX_GREEN_SIZE,    8,
+                0
+            };
 
-        EarlyInitGLXfnPointers();
+        SetGLXFunctionPointers();
 
-        // Tell X we are going to use the display
         mData->display = XOpenDisplay(NULL);
 
-        // Get Version info
-        glXQueryVersion(mData->display, &nMajorVer, &nMinorVer);
-        printf("Supported GLX version - %d.%d\n", nMajorVer, nMinorVer);
-        LDEBUG;
+        glXQueryVersion(mData->display, &MajorGLX, &MinorGLX);
+        cout << "supported GLX version: " << MajorGLX << '.' << MinorGLX
+            << endl;
 
-        if(nMajorVer == 1 && nMinorVer < 2)
+        if(MajorGLX == 1 && MinorGLX < 2)
         {
-            printf("ERROR: GLX 1.2 or greater is necessary\n");
+            cerr << "ERROR -- GLX 1.2 or greater is required\n";
             XCloseDisplay(mData->display);
-
-            delete mData;
-            mData = NULL;
+            mWidth = 0;
+            mHeight = 0;
+            mDepth = 0;
             return;
         }
-        LDEBUG;
 
-        // Get a new fb config that meets our attrib requirements
         fbConfigs = glXChooseFBConfig(mData->display,
             DefaultScreen(mData->display), fbAttribs, &numConfigs);
         visualInfo = glXGetVisualFromFBConfig(mData->display, fbConfigs[0]);
-        LDEBUG;
 
-        // Now create an X window
+        /// X window creation
         winAttribs.event_mask = ExposureMask | VisibilityChangeMask |
             KeyPressMask | PointerMotionMask | StructureNotifyMask;
 
@@ -110,72 +118,66 @@ namespace XPG
             AllocNone);
         winmask = CWBorderPixel | CWBitGravity | CWEventMask| CWColormap;
 
-        LDEBUG;
+        int d = mDepth ? mDepth : visualInfo->depth;
         mData->window = XCreateWindow(mData->display,
             DefaultRootWindow(mData->display), 20, 20, mWidth, mHeight, 0,
-            visualInfo->depth, InputOutput, visualInfo->visual, winmask,
+            d, InputOutput, visualInfo->visual, winmask,
             &winAttribs);
 
-        LDEBUG;
         XMapWindow(mData->display, mData->window);
-        LDEBUG;
 
-        // Also create a new GL context for rendering
+        /// GL context creation
         GLint attribs[] =
         {
             GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
-            GLX_CONTEXT_MINOR_VERSION_ARB, 2,
-            //GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+            GLX_CONTEXT_MINOR_VERSION_ARB, 1,
             0
         };
 
-        LDEBUG;
+        // Must first check to see if the extension to create an OpenGL 3.x
+        // context is even available
         if (glXCreateContextAttribsARB)
         {
-            LDEBUG;
+            // Good to go. Create the 3.x context.
             mData->context = glXCreateContextAttribsARB(mData->display,
                 fbConfigs[0], 0, True, attribs);
         }
         else
         {
-            LDEBUG;
-            mData->context = glXCreateContext(mData->display, visualInfo, NULL, True);
+            // No good. Create a legacy context.
+            mData->context = glXCreateContext(mData->display, visualInfo, NULL,
+                True);
         }
 
-
-        LDEBUG;
         glXMakeCurrent(mData->display, mData->window, mData->context);
-
-        LDEBUG;
 
         GLenum e = glewInit();
         if (e != GLEW_OK)
-        {
-            fprintf(stderr, "Error: %s\n", glewGetErrorString(e));
-        }
+            cerr << "ERROR (GLEW) -- " << glewGetErrorString(e);
 
         const GLubyte *s = glGetString(GL_VERSION);
-        printf("GL Version = %s\n", s);
+        cout << "GL version: " << s << endl;
 
         glViewport(0, 0, mWidth, mHeight);
     }
 
     void Context::destroy()
     {
-        if (mData)
+        if (mWidth)
         {
             glXMakeCurrent(mData->display, None, NULL);
             glXDestroyContext(mData->display, mData->context);
             XDestroyWindow(mData->display, mData->window);
             XCloseDisplay(mData->display);
-            delete mData;
-			mData = NULL;
+            mWidth = 0;
+            mHeight = 0;
+            mDepth = 0;
         }
     }
 
     void Context::runModule(Module* inModule)
     {
-        if (!mData || !inModule) return;
+        if (!mWidth || !inModule) return;
 
         Bool bWinMapped = False;
         inModule->onResize(mWidth, mHeight);
@@ -237,6 +239,42 @@ namespace XPG
                 inModule->onDisplay();
                 glXSwapBuffers(mData->display, mData->window);
             }
+        }
+    }
+
+    void Context::setWindowTitle(const char* inTitle)
+    {
+        if (!mWidth || !inTitle) return;
+
+        XTextProperty titleProperty;
+        Status status;
+
+        char* t = const_cast<char*>(inTitle);
+
+        status = XStringListToTextProperty(&t, 1, &titleProperty);
+        if (status)
+        {
+            XSetTextProperty(mData->display, mData->window, &titleProperty,
+                XA_WM_NAME);
+            XFree(titleProperty.value);
+        }
+    }
+
+    void Context::setIconTitle(const char* inTitle)
+    {
+        if (!mWidth || !inTitle) return;
+
+        XTextProperty titleProperty;
+        Status status;
+
+        char* t = const_cast<char*>(inTitle);
+
+        status = XStringListToTextProperty(&t, 1, &titleProperty);
+        if (status)
+        {
+            XSetTextProperty(mData->display, mData->window, &titleProperty,
+                XA_WM_ICON_NAME);
+            XFree(titleProperty.value);
         }
     }
 }

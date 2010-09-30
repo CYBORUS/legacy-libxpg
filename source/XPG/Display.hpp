@@ -4,13 +4,8 @@
 #include "DataTypes.hpp"
 #include "Module.hpp"
 
-#define LDEBUG printf("yarr -- %d\n", __LINE__)
-
 namespace XPG
 {
-    void CreateDisplay(int32u inWidth, int32u inHeight, int32u inColorDepth,
-        int32u inFlags = 0);
-
     class Context
     {
         public:
@@ -26,6 +21,7 @@ namespace XPG
             void destroy();
             void runModule(Module* inModule);
             void setWindowTitle(const char* inTitle);
+            void setIconTitle(const char* inTitle);
 
         private:
             int32u mWidth;
