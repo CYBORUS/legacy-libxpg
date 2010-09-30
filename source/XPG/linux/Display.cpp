@@ -7,6 +7,9 @@
 #include <cstdio>
 #include <cstdlib>
 
+#include <iostream>
+using namespace std;
+
 namespace XPG
 {
     void EarlyInitGLXfnPointers()
@@ -77,6 +80,7 @@ namespace XPG
         // Get Version info
         glXQueryVersion(mData->display, &nMajorVer, &nMinorVer);
         printf("Supported GLX version - %d.%d\n", nMajorVer, nMinorVer);
+        LDEBUG;
 
         if(nMajorVer == 1 && nMinorVer < 2)
         {
@@ -87,11 +91,13 @@ namespace XPG
             mData = NULL;
             return;
         }
+        LDEBUG;
 
         // Get a new fb config that meets our attrib requirements
         fbConfigs = glXChooseFBConfig(mData->display,
             DefaultScreen(mData->display), fbAttribs, &numConfigs);
         visualInfo = glXGetVisualFromFBConfig(mData->display, fbConfigs[0]);
+        LDEBUG;
 
         // Now create an X window
         winAttribs.event_mask = ExposureMask | VisibilityChangeMask |
@@ -104,24 +110,43 @@ namespace XPG
             AllocNone);
         winmask = CWBorderPixel | CWBitGravity | CWEventMask| CWColormap;
 
+        LDEBUG;
         mData->window = XCreateWindow(mData->display,
             DefaultRootWindow(mData->display), 20, 20, mWidth, mHeight, 0,
             visualInfo->depth, InputOutput, visualInfo->visual, winmask,
             &winAttribs);
 
+        LDEBUG;
         XMapWindow(mData->display, mData->window);
+        LDEBUG;
 
         // Also create a new GL context for rendering
         GLint attribs[] =
         {
             GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
-            GLX_CONTEXT_MINOR_VERSION_ARB, 1,
+            GLX_CONTEXT_MINOR_VERSION_ARB, 2,
+            //GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
             0
         };
 
-        mData->context = glXCreateContextAttribsARB(mData->display,
-            fbConfigs[0], 0, True, attribs);
+        LDEBUG;
+        if (glXCreateContextAttribsARB)
+        {
+            LDEBUG;
+            mData->context = glXCreateContextAttribsARB(mData->display,
+                fbConfigs[0], 0, True, attribs);
+        }
+        else
+        {
+            LDEBUG;
+            mData->context = glXCreateContext(mData->display, visualInfo, NULL, True);
+        }
+
+
+        LDEBUG;
         glXMakeCurrent(mData->display, mData->window, mData->context);
+
+        LDEBUG;
 
         GLenum e = glewInit();
         if (e != GLEW_OK)

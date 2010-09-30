@@ -4,6 +4,8 @@
 #include "DataTypes.hpp"
 #include "Module.hpp"
 
+#define LDEBUG printf("yarr -- %d\n", __LINE__)
+
 namespace XPG
 {
     void CreateDisplay(int32u inWidth, int32u inHeight, int32u inColorDepth,
