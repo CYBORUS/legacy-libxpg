@@ -313,7 +313,7 @@ namespace XPG
     {
         if (!mWidth || !inModule) return;
 
-        inModule->onResize(mWidth, mHeight);
+        mWEL->onResize(mWidth, mHeight);
         inModule->startRunning();
 
         int64u f = 0;

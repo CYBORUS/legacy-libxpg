@@ -82,9 +82,9 @@ void TestModule::Draw()
     float fLeftX = 0.0;
     float fLeftY = 0.0;
 
-    int nLtEyePosX = (mWidth)/2 - (0.3 * ((mWidth)/2));
+    int nLtEyePosX = (mWidth)/2 - (((mWidth)/2) / 3);
     int nLtEyePosY = (mHeight)/2;
-    int nRtEyePosX = (mWidth)/2 + (0.3 * ((mWidth)/2));
+    int nRtEyePosX = (mWidth)/2 + (((mWidth)/2) / 3);
     int nRtEyePosY = (mHeight)/2;
 
     double fLtVecMag = 100;
