@@ -9,12 +9,4 @@ namespace XPG
     Module::~Module()
     {
     }
-
-    void Module::onMouseMove(int32u inX, int32u inY)
-    {
-    }
-
-    void Module::onResize(int32u inWidth, int32u inHeight)
-    {
-    }
 }

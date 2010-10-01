@@ -16,8 +16,6 @@ namespace XPG
             inline void startRunning() { mRunning = true; }
             inline void stopRunning() { mRunning = false; }
 
-            virtual void onMouseMove(int32u inX, int32u inY);
-            virtual void onResize(int32u inWidth, int32u inHeight);
             virtual void onDisplay() = 0;
 
         private:

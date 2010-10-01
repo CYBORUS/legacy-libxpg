@@ -1,5 +1,6 @@
 #include "../Display.hpp"
 #include "../OperatingSystems.hpp"
+#include "../Timer.hpp"
 
 #include <GL/glew.h>
 #include <GL/wglew.h>
@@ -10,10 +11,11 @@ using namespace std;
 namespace XPG
 {
     LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lparam);
-    static Module* activeModule;
-    static HDC activeHDC;
+    static Context* activeContext;
+    static WindowEventListener* activeWEL;
     static int32u* activeWidth;
     static int32u* activeHeight;
+    static Module* activeModule;
 
     struct Context::PrivateData
     {
@@ -22,6 +24,7 @@ namespace XPG
         HDC hdc;
         HINSTANCE hInstance;
         char title[255];
+        Module* module;
     };
 
     Context::Context() : mWidth(0), mHeight(0), mDepth(0)
@@ -156,6 +159,134 @@ namespace XPG
             mWidth = 0;
             mHeight = 0;
             mDepth = 0;
+            PostQuitMessage(0);
+        }
+    }
+
+    void Context::swapBuffers()
+    {
+        SwapBuffers(mData->hdc);
+    }
+
+    void Context::dispatchEvents()
+    {
+        //cout << "dispatchEvents" << endl;
+        MSG msg;
+        if (!PeekMessage(&msg, mData->hWnd, 0, 0, PM_REMOVE)) return;
+        WPARAM wparam = msg.wParam;
+        LPARAM lparam = msg.lParam;
+
+        switch (msg.message)
+        {
+            case WM_MOUSEMOVE:
+            {
+                // http://msdn.microsoft.com/en-us/library/ms632654%28v=VS.85%29.aspx
+                mMEL->onMove(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam));
+                break;
+            }
+
+            case WM_MBUTTONDOWN:
+            {
+                //cout << "mouse MButton down" << endl;
+                mMEL->onMiddleButtonDown();
+                break;
+            }
+
+            case WM_MBUTTONUP:
+            {
+                //cout << "mouse MButton up" << endl;
+                mMEL->onMiddleButtonUp();
+                break;
+            }
+
+            case WM_LBUTTONDOWN:
+            {
+                //cout << "mouse LButton down" << endl;
+                mMEL->onLeftButtonDown();
+                break;
+            }
+
+            case WM_LBUTTONUP:
+            {
+                //cout << "mouse LButton up" << endl;
+                mMEL->onLeftButtonUp();
+                break;
+            }
+
+            case WM_RBUTTONDOWN:
+            {
+                //cout << "mouse RButton down" << endl;
+                mMEL->onRightButtonDown();
+                break;
+            }
+
+            case WM_RBUTTONUP:
+            {
+                //cout << "mouse RButton up" << endl;
+                mMEL->onRightButtonUp();
+                break;
+            }
+
+            case WM_MOUSELEAVE:
+            {
+                //cout << "mouse leave" << endl;
+                mMEL->onLeaveWindow();
+                break;
+            }
+
+            case WM_MOUSEWHEEL:
+            {
+                //http://msdn.microsoft.com/en-us/library/ms645617%28v=VS.85%29.aspx
+                cout << "mouse wheel: " << GET_WHEEL_DELTA_WPARAM(wparam) << endl;
+                break;
+            }
+
+            case WM_KEYDOWN:
+            {
+                // http://msdn.microsoft.com/en-us/library/ms646280%28VS.85%29.aspx
+                // Bit 30 of lparam indicates last key state.
+                // We do not want to repeat this event.
+                if (lparam & 0x40000000) break;
+
+                unsigned int key = (unsigned int)wparam;
+                cout << "key down -- " << key << endl;
+                if (key == 27) mData->module->stopRunning();
+                break;
+            }
+
+            case WM_KEYUP:
+            {
+                unsigned int key = (unsigned int)wparam;
+                cout << "key up -- " << key << endl;
+                break;
+            }
+
+            // http://msdn.microsoft.com/en-us/library/ff468861%28v=VS.85%29.aspx
+            case WM_SETFOCUS:
+            {
+                //cout << "focus" << endl;
+                mWEL->onFocus();
+                break;
+            }
+
+            case WM_KILLFOCUS:
+            {
+                //cout << "blur" << endl;
+                mWEL->onBlur();
+                break;
+            }
+
+            case WM_QUIT:
+            {
+                mWEL->onExit();
+                break;
+            }
+
+            default:
+            {
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+            }
         }
     }
 
@@ -163,35 +294,21 @@ namespace XPG
     {
         if (!mWidth || !inModule) return;
 
-        inModule->onResize(mWidth, mHeight);
-        inModule->startRunning();
+        mData->module = inModule;
         activeModule = inModule;
-        activeHDC = mData->hdc;
+        activeContext = this;
+        activeWEL = mWEL;
         activeWidth = &mWidth;
         activeHeight = &mHeight;
+        mWEL->onResize(mWidth, mHeight);
+        inModule->startRunning();
 
         while (inModule->isRunning())
         {
-            MSG msg;
-            if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-            {
-                if (msg.message == WM_QUIT)
-                {
-                    inModule->stopRunning();
-                }
-                else
-                {
-                    if (msg.message == WM_LBUTTONDOWN)
-                        setWindowTitle("1337 h4x!");
-                    TranslateMessage(&msg);
-                    DispatchMessage(&msg);
-                }
-            }
-            else
-            {
-                inModule->onDisplay();
-                SwapBuffers(mData->hdc);
-            }
+            dispatchEvents();
+            inModule->onDisplay();
+            swapBuffers();
+            Idle(1);
         }
     }
 
@@ -218,106 +335,14 @@ namespace XPG
     {
         switch (msg)
         {
-            case WM_MBUTTONDOWN:
-            {
-                cout << "mouse MButton down" << endl;
-                break;
-            }
-
-            case WM_MBUTTONUP:
-            {
-                cout << "mouse MButton up" << endl;
-                break;
-            }
-
-            case WM_LBUTTONDOWN:
-            {
-                cout << "mouse LButton down" << endl;
-                break;
-            }
-
-            case WM_LBUTTONUP:
-            {
-                cout << "mouse LButton up" << endl;
-                break;
-            }
-
-            case WM_RBUTTONDOWN:
-            {
-                cout << "mouse RButton down" << endl;
-                break;
-            }
-
-            case WM_RBUTTONUP:
-            {
-                cout << "mouse RButton up" << endl;
-                break;
-            }
-
-            case WM_MOUSELEAVE:
-            {
-                cout << "mouse leave" << endl;
-                break;
-            }
-
-            case WM_MOUSEMOVE:
-            {
-                // http://msdn.microsoft.com/en-us/library/ms632654%28v=VS.85%29.aspx
-                //cout << "mouse move: " << GET_X_LPARAM(lparam) << ' '
-                //     << GET_Y_LPARAM(lparam) << endl;
-                activeModule->onMouseMove(GET_X_LPARAM(lparam),
-                    GET_Y_LPARAM(lparam));
-                break;
-            }
-
-            case WM_MOUSEWHEEL:
-            {
-                //http://msdn.microsoft.com/en-us/library/ms645617%28v=VS.85%29.aspx
-                cout << "mouse wheel: " << GET_WHEEL_DELTA_WPARAM(wparam) << endl;
-                break;
-            }
-
-            // http://msdn.microsoft.com/en-us/library/ff468861%28v=VS.85%29.aspx
-            case WM_SETFOCUS:
-            {
-                cout << "focus" << endl;
-                break;
-            }
-
-            case WM_KILLFOCUS:
-            {
-                cout << "blur" << endl;
-                break;
-            }
-
-            case WM_KEYDOWN:
-            {
-                // http://msdn.microsoft.com/en-us/library/ms646280%28VS.85%29.aspx
-                // Bit 30 of lparam indicates last key state.
-                // We do not want to repeat this event.
-                if (lparam & 0x40000000) break;
-
-                unsigned int key = (unsigned int)wparam;
-                cout << "key down -- " << key << endl;
-                if (key == 27) PostQuitMessage(0);
-                break;
-            }
-
-            case WM_KEYUP:
-            {
-                unsigned int key = (unsigned int)wparam;
-                cout << "key up -- " << key << endl;
-                break;
-            }
-
             case WM_SIZE:
             {
-                *activeWidth = LOWORD(lparam); // Set the window width
-                *activeHeight = HIWORD(lparam); // Set the window height
+                *activeWidth = LOWORD(lparam);
+                *activeHeight = HIWORD(lparam);
                 glViewport(0, 0, *activeWidth, *activeHeight);
-                activeModule->onResize(*activeWidth, *activeHeight);
+                activeWEL->onResize(*activeWidth, *activeHeight);
                 activeModule->onDisplay();
-                SwapBuffers(activeHDC);
+                activeContext->swapBuffers();
 
                 // http://msdn.microsoft.com/en-us/library/ms632646%28v=VS.85%29.aspx
                 switch (wparam)
@@ -343,6 +368,8 @@ namespace XPG
                     default:
                     {}
                 }
+
+                return 0;
                 break;
             }
 
@@ -352,8 +379,9 @@ namespace XPG
             }
 
             case WM_DESTROY:
-                //PostQuitMessage(0);
+            {
                 break;
+            }
 
             default:
                 return DefWindowProc(hWnd, msg, wparam, lparam);

@@ -45,6 +45,7 @@
 		</Linker>
 		<Unit filename="..\..\XPG\DataTypes.hpp" />
 		<Unit filename="..\..\XPG\Display.hpp" />
+		<Unit filename="..\..\XPG\Event.hpp" />
 		<Unit filename="..\..\XPG\Matrix3D.hpp" />
 		<Unit filename="..\..\XPG\Module.hpp" />
 		<Unit filename="..\..\XPG\Mutex.hpp" />
@@ -54,6 +55,8 @@
 		<Unit filename="..\..\XPG\Thread.hpp" />
 		<Unit filename="..\..\XPG\Timer.hpp" />
 		<Unit filename="..\..\XPG\Vector3D.hpp" />
+		<Unit filename="..\..\XPG\core\Display.cpp" />
+		<Unit filename="..\..\XPG\core\Event.cpp" />
 		<Unit filename="..\..\XPG\core\Module.cpp" />
 		<Unit filename="..\..\XPG\core\Surface.cpp" />
 		<Unit filename="..\..\XPG\glew\glew.c">
