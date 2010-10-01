@@ -161,13 +161,15 @@ int main(int argc, char** argv)
     c.create(800, 600);
     c.setWindowTitle("XPG OpenGL 3");
     c.setIconTitle("XPG-OGL3");
+    c.setMouseListener(&tm);
+    c.setWindowListener(&tm);
     c.runModule(&tm);
     c.destroy();
 
-    c.create(1024, 768);
-    c.setWindowTitle("XPG Round 2");
-    c.setIconTitle("XPG-R2");
-    c.runModule(&tm);
+//    c.create(1024, 768);
+//    c.setWindowTitle("XPG Round 2");
+//    c.setIconTitle("XPG-R2");
+//    c.runModule(&tm);
 
     return 0;
 }

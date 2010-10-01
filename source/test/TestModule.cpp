@@ -11,7 +11,12 @@ TestModule::~TestModule()
 {
 }
 
-void TestModule::onMouseMove(int32u inX, int32u inY)
+void TestModule::onExit()
+{
+    stopRunning();
+}
+
+void TestModule::onMove(int32u inX, int32u inY)
 {
     mMouseX = inX;
     mMouseY = inY;

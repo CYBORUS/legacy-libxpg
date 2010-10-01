@@ -1,7 +1,7 @@
 #ifndef XPGH_DISPLAY
 #define XPGH_DISPLAY
 
-#include "DataTypes.hpp"
+#include "Event.hpp"
 #include "Module.hpp"
 
 namespace XPG
@@ -19,17 +19,28 @@ namespace XPG
             void create(int32u inWidth, int32u inHeight, int32u inDepth = 0,
                 int32u inFlags = 0);
             void destroy();
+            void swapBuffers();
+            void dispatchEvents();
             void runModule(Module* inModule);
             void setWindowTitle(const char* inTitle);
             void setIconTitle(const char* inTitle);
+
+            void setWindowListener(WindowEventListener* inListener = NULL);
+            void setMouseListener(MouseEventListener* inListener = NULL);
+            void setKeyboardListener(KeyboardEventListener* inListener = NULL);
 
         private:
             int32u mWidth;
             int32u mHeight;
             int32u mDepth;
 
-            int32u mMouseX;
-            int32u mMouseY;
+            WindowEventListener* mWEL;
+            MouseEventListener* mMEL;
+            KeyboardEventListener* mKEL;
+
+            WindowEventListener mDefaultWindow;
+            MouseEventListener mDefaultMouse;
+            KeyboardEventListener mDefaultKeyboard;
 
             struct PrivateData;
             PrivateData* mData;

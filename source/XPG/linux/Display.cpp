@@ -1,4 +1,5 @@
 #include "../Display.hpp"
+#include "../Timer.hpp"
 
 #include <GL/glew.h>
 #include <GL/glxew.h>
@@ -40,11 +41,15 @@ namespace XPG
         GLXContext context;
         Display* display;
         Window window;
+        long eventMask;
     };
 
     Context::Context() : mWidth(0), mHeight(0), mDepth(0)
     {
         mData = new PrivateData;
+        mMEL = &mDefaultMouse;
+        mKEL = &mDefaultKeyboard;
+        mWEL = &mDefaultWindow;
     }
 
     Context::~Context()
@@ -63,8 +68,6 @@ namespace XPG
 
         mWidth = inWidth;
         mHeight = inHeight;
-        mMouseX = 0;
-        mMouseY = 0;
 
         XSetWindowAttributes winAttribs;
         GLint winmask;
@@ -108,8 +111,11 @@ namespace XPG
         visualInfo = glXGetVisualFromFBConfig(mData->display, fbConfigs[0]);
 
         /// X window creation
-        winAttribs.event_mask = ExposureMask | VisibilityChangeMask |
-            KeyPressMask | PointerMotionMask | StructureNotifyMask;
+        mData->eventMask = ExposureMask | VisibilityChangeMask |
+            KeyPressMask | PointerMotionMask | StructureNotifyMask
+            | ButtonPressMask | ButtonReleaseMask | FocusChangeMask
+            | EnterWindowMask | LeaveWindowMask;
+        winAttribs.event_mask = mData->eventMask;
 
         winAttribs.border_pixel = 0;
         winAttribs.bit_gravity = StaticGravity;
@@ -175,31 +181,94 @@ namespace XPG
         }
     }
 
-    void Context::runModule(Module* inModule)
+    void Context::swapBuffers()
     {
-        if (!mWidth || !inModule) return;
+        glXSwapBuffers(mData->display, mData->window);
+    }
 
-        Bool bWinMapped = False;
-        inModule->onResize(mWidth, mHeight);
-        inModule->startRunning();
+    void Context::dispatchEvents()
+    {
+        XEvent event;
+        XWindowAttributes winData;
+        //XNextEvent(mData->display, &event);
 
-        while (inModule->isRunning())
+        if (XCheckWindowEvent(mData->display, mData->window,
+            mData->eventMask, &event))
         {
-            XEvent event;
-            XWindowAttributes winData;
-            XNextEvent(mData->display, &event);
-
             switch(event.type)
             {
+                case ButtonPress:
+                {
+                    switch (event.xbutton.button)
+                    {
+                        case Button1: mMEL->onLeftButtonDown(); break;
+                        case Button2: mMEL->onMiddleButtonDown(); break;
+                        case Button3: mMEL->onRightButtonDown(); break;
+                        case Button4: mMEL->onWheelUp(); break;
+                        case Button5: mMEL->onWheelDown(); break;
+                        default:
+                            mMEL->onOtherButtonDown(event.xbutton.button);
+                    }
+
+                    break;
+                }
+
+                case ButtonRelease:
+                {
+                    switch (event.xbutton.button)
+                    {
+                        case Button1: mMEL->onLeftButtonUp(); break;
+                        case Button2: mMEL->onMiddleButtonUp(); break;
+                        case Button3: mMEL->onRightButtonUp(); break;
+
+                        case Button4:
+                        case Button5:
+                            // Do not report the wheel as a button release
+                            break;
+
+                        default:
+                            mMEL->onOtherButtonDown
+                                (event.xbutton.button);
+                    }
+
+                    break;
+                }
+
+                case FocusIn:
+                {
+                    //cout << "FocusIn" << endl;
+                    mWEL->onFocus();
+                    break;
+                }
+
+                case FocusOut:
+                {
+                    //cout << "FocusOut" << endl;
+                    mWEL->onBlur();
+                    break;
+                }
+
+                case EnterNotify:
+                {
+                    //cout << "mouse in" << endl;
+                    mMEL->onEnterWindow();
+                    break;
+                }
+
+                case LeaveNotify:
+                {
+                    //cout << "mouse out" << endl;
+                    mMEL->onLeaveWindow();
+                    break;
+                }
+
                 case UnmapNotify:
                 {
-                    bWinMapped = False;
                     break;
                 }
 
                 case MapNotify:
                 {
-                    bWinMapped = True;
                 }
 
                 case ConfigureNotify:
@@ -209,36 +278,52 @@ namespace XPG
                     mHeight = winData.height;
                     mWidth = winData.width;
                     glViewport(0, 0, mWidth, mHeight);
-                    inModule->onResize(mWidth, mHeight);
+                    mWEL->onResize(mWidth, mHeight);
                     break;
                 }
 
                 case MotionNotify:
                 {
-                    mMouseX = event.xmotion.x;
-                    mMouseY = event.xmotion.y;
-                    inModule->onMouseMove(mMouseX, mMouseY);
-                    inModule->onDisplay();
-                    glXSwapBuffers(mData->display, mData->window);
+                    mMEL->onMove(event.xmotion.x, event.xmotion.y);
                     break;
                 }
 
                 case KeyPress:
+                {
+                    cout << "key code -- " << event.xkey.keycode << endl;
+                    if (event.xkey.keycode == 9) mWEL->onExit();
+                    break;
+                }
+
                 case DestroyNotify:
                 {
-                    inModule->stopRunning();
+                    cout << "destroy" << endl;
                     break;
                 }
 
                 default:
-                {}
+                {
+                    //cout << "no event?" << endl;
+                }
             }
+        }
+    }
 
-            if(bWinMapped)
-            {
-                inModule->onDisplay();
-                glXSwapBuffers(mData->display, mData->window);
-            }
+    void Context::runModule(Module* inModule)
+    {
+        if (!mWidth || !inModule) return;
+
+        inModule->onResize(mWidth, mHeight);
+        inModule->startRunning();
+
+        int64u f = 0;
+        while (inModule->isRunning())
+        {
+            dispatchEvents();
+            inModule->onDisplay();
+            swapBuffers();
+            //cout << f++ << endl;
+            Idle(1);
         }
     }
 
