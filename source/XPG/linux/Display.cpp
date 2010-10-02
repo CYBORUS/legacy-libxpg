@@ -164,6 +164,12 @@ namespace XPG
         const GLubyte *s = glGetString(GL_VERSION);
         cout << "GL version: " << s << endl;
 
+        int glVersion[2] = {-1, -1};
+        glGetIntegerv(GL_MAJOR_VERSION, glVersion);
+        glGetIntegerv(GL_MINOR_VERSION, glVersion + 1);
+        cout << "found version ints: " << glVersion[0] << '.' << glVersion[1]
+            << endl;
+
         glViewport(0, 0, mWidth, mHeight);
     }
 
