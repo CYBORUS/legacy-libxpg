@@ -59,9 +59,6 @@
 		<Unit filename="..\..\XPG\core\Event.cpp" />
 		<Unit filename="..\..\XPG\core\Module.cpp" />
 		<Unit filename="..\..\XPG\core\Surface.cpp" />
-		<Unit filename="..\..\XPG\glew\glew.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="..\..\XPG\win32\Display.cpp" />
 		<Unit filename="..\..\XPG\win32\Mutex.cpp" />
 		<Unit filename="..\..\XPG\win32\Network.cpp" />

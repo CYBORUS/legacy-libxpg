@@ -14,7 +14,8 @@ namespace XPG
 
     void Mutex::lock()
     {
-        DWORD waitResult = WaitForSingleObject(mMutex, INFINITE);
+        //DWORD waitResult =
+        WaitForSingleObject(mMutex, INFINITE);
         /// TODO: add error checking
     }
 
