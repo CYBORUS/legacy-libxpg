@@ -19,6 +19,7 @@ namespace XPG
 
     struct Context::PrivateData
     {
+        bool active;
         HWND hWnd;
         HGLRC hrc;
         HDC hdc;
@@ -30,6 +31,7 @@ namespace XPG
     Context::Context() : mWidth(0), mHeight(0), mDepth(0)
     {
         mData = new PrivateData;
+        mData->active = false;
         strcpy(mData->title, "OpenGL 3");
     }
 
@@ -42,8 +44,9 @@ namespace XPG
     void Context::create(int32u inWidth, int32u inHeight, int32u inDepth,
         int32u inFlags)
     {
-        if (mWidth) return;
+        if (mData->active) return;
 
+        mData->active = true;
         mWidth = inWidth;
         mHeight = inHeight;
         mDepth = inDepth;
@@ -150,7 +153,7 @@ namespace XPG
 
     void Context::destroy()
     {
-        if (mWidth)
+        if (mData->active)
         {
             wglMakeCurrent(mData->hdc, 0);
             wglDeleteContext(mData->hrc);
@@ -159,7 +162,8 @@ namespace XPG
             mWidth = 0;
             mHeight = 0;
             mDepth = 0;
-            PostQuitMessage(0);
+            mData->active = false;
+            //PostQuitMessage(0);
         }
     }
 
@@ -237,7 +241,13 @@ namespace XPG
             case WM_MOUSEWHEEL:
             {
                 //http://msdn.microsoft.com/en-us/library/ms645617%28v=VS.85%29.aspx
-                cout << "mouse wheel: " << GET_WHEEL_DELTA_WPARAM(wparam) << endl;
+                //cout << "mouse wheel: " << GET_WHEEL_DELTA_WPARAM(wparam)
+                //    << endl;
+                short w = GET_WHEEL_DELTA_WPARAM(wparam);
+                if (w > 0)
+                    mMEL->onWheelUp();
+                else if (w < 0)
+                    mMEL->onWheelDown();
                 break;
             }
 
@@ -273,12 +283,6 @@ namespace XPG
             {
                 //cout << "blur" << endl;
                 mWEL->onBlur();
-                break;
-            }
-
-            case WM_QUIT:
-            {
-                mWEL->onExit();
                 break;
             }
 
@@ -378,8 +382,9 @@ namespace XPG
                 break;
             }
 
-            case WM_DESTROY:
+            case WM_CLOSE:
             {
+                activeWEL->onExit();
                 break;
             }
 

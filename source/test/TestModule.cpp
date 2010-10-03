@@ -13,6 +13,7 @@ TestModule::~TestModule()
 
 void TestModule::onExit()
 {
+    cout << "onExit" << endl;
     stopRunning();
 }
 
