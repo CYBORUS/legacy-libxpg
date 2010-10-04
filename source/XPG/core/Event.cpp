@@ -24,9 +24,9 @@ namespace XPG
     void MouseEventListener::onWheelDown() {}
     void MouseEventListener::onWheelUp() {}
 
-    void KeyboardEventListener::onKeyDown() {}
-    void KeyboardEventListener::onKeyRepeat() {}
-    void KeyboardEventListener::onKeyUp() {}
+    void KeyboardEventListener::onKeyDown(Key::Code inKey) {}
+    void KeyboardEventListener::onKeyRepeat(Key::Code inKey) {}
+    void KeyboardEventListener::onKeyUp(Key::Code inKey) {}
 
     void JoystickEventListener::onAxis() {}
     void JoystickEventListener::onButtonDown() {}

@@ -10,6 +10,7 @@ using namespace std;
 
 namespace XPG
 {
+    Key::Code convertKeyCode(unsigned int inData);
     LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lparam);
     static Context* activeContext;
     static WindowEventListener* activeWEL;
@@ -28,7 +29,7 @@ namespace XPG
         Module* module;
     };
 
-    Context::Context() : mWidth(0), mHeight(0), mDepth(0)
+    Context::Context()
     {
         mData = new PrivateData;
         mData->active = false;
@@ -41,15 +42,15 @@ namespace XPG
         delete mData;
     }
 
-    void Context::create(int32u inWidth, int32u inHeight, int32u inDepth,
-        int32u inFlags)
+    void Context::create(const Parameters& inDetails)
     {
         if (mData->active) return;
 
         mData->active = true;
-        mWidth = inWidth;
-        mHeight = inHeight;
-        mDepth = inDepth;
+        mDetails = inDetails;
+        setWindowListener(mDetails.WEL);
+        setMouseListener(mDetails.MEL);
+        setKeyboardListener(mDetails.KEL);
 
         mData->hInstance = GetModuleHandle(NULL);
         WNDCLASS windowClass;
@@ -73,7 +74,7 @@ namespace XPG
         }
 
         mData->hWnd = CreateWindowEx(dwExStyle, mData->title, mData->title,
-            WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, mWidth, mHeight, NULL, NULL,
+            WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, mDetails.width, mDetails.height, NULL, NULL,
             mData->hInstance, NULL);
 
         mData->hdc = GetDC(mData->hWnd);
@@ -84,7 +85,7 @@ namespace XPG
         pfd.dwFlags = PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL |
             PFD_DRAW_TO_WINDOW;
         pfd.iPixelType = PFD_TYPE_RGBA;
-        pfd.cColorBits = mDepth;
+        pfd.cColorBits = mDetails.depth;
         pfd.cDepthBits = 32;
         pfd.iLayerType = PFD_MAIN_PLANE;
 
@@ -92,18 +93,18 @@ namespace XPG
         if (nPixelFormat == 0)
         {
             cerr << "failed ChoosePixelFormat" << endl;
-            mWidth = 0;
-            mHeight = 0;
-            mDepth = 0;
+            mDetails.width = 0;
+            mDetails.height = 0;
+            mDetails.depth = 0;
             return;
         }
 
         if (!SetPixelFormat(mData->hdc, nPixelFormat, &pfd))
         {
             cerr << "failed SetPixelFormat" << endl;
-            mWidth = 0;
-            mHeight = 0;
-            mDepth = 0;
+            mDetails.width = 0;
+            mDetails.height = 0;
+            mDetails.depth = 0;
             return;
         }
 
@@ -148,7 +149,7 @@ namespace XPG
         ShowWindow(mData->hWnd, SW_SHOW);
         UpdateWindow(mData->hWnd);
 
-        glViewport(0, 0, mWidth, mHeight);
+        glViewport(0, 0, mDetails.width, mDetails.height);
     }
 
     void Context::destroy()
@@ -159,9 +160,9 @@ namespace XPG
             wglDeleteContext(mData->hrc);
             ReleaseDC(mData->hWnd, mData->hdc);
             DestroyWindow(mData->hWnd);
-            mWidth = 0;
-            mHeight = 0;
-            mDepth = 0;
+            mDetails.width = 0;
+            mDetails.height = 0;
+            mDetails.depth = 0;
             mData->active = false;
             //PostQuitMessage(0);
         }
@@ -185,56 +186,56 @@ namespace XPG
             case WM_MOUSEMOVE:
             {
                 // http://msdn.microsoft.com/en-us/library/ms632654%28v=VS.85%29.aspx
-                mMEL->onMove(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam));
+                mDetails.MEL->onMove(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam));
                 break;
             }
 
             case WM_MBUTTONDOWN:
             {
                 //cout << "mouse MButton down" << endl;
-                mMEL->onMiddleButtonDown();
+                mDetails.MEL->onMiddleButtonDown();
                 break;
             }
 
             case WM_MBUTTONUP:
             {
                 //cout << "mouse MButton up" << endl;
-                mMEL->onMiddleButtonUp();
+                mDetails.MEL->onMiddleButtonUp();
                 break;
             }
 
             case WM_LBUTTONDOWN:
             {
                 //cout << "mouse LButton down" << endl;
-                mMEL->onLeftButtonDown();
+                mDetails.MEL->onLeftButtonDown();
                 break;
             }
 
             case WM_LBUTTONUP:
             {
                 //cout << "mouse LButton up" << endl;
-                mMEL->onLeftButtonUp();
+                mDetails.MEL->onLeftButtonUp();
                 break;
             }
 
             case WM_RBUTTONDOWN:
             {
                 //cout << "mouse RButton down" << endl;
-                mMEL->onRightButtonDown();
+                mDetails.MEL->onRightButtonDown();
                 break;
             }
 
             case WM_RBUTTONUP:
             {
                 //cout << "mouse RButton up" << endl;
-                mMEL->onRightButtonUp();
+                mDetails.MEL->onRightButtonUp();
                 break;
             }
 
             case WM_MOUSELEAVE:
             {
                 //cout << "mouse leave" << endl;
-                mMEL->onLeaveWindow();
+                mDetails.MEL->onLeaveWindow();
                 break;
             }
 
@@ -245,9 +246,9 @@ namespace XPG
                 //    << endl;
                 short w = GET_WHEEL_DELTA_WPARAM(wparam);
                 if (w > 0)
-                    mMEL->onWheelUp();
+                    mDetails.MEL->onWheelUp();
                 else if (w < 0)
-                    mMEL->onWheelDown();
+                    mDetails.MEL->onWheelDown();
                 break;
             }
 
@@ -275,14 +276,14 @@ namespace XPG
             case WM_SETFOCUS:
             {
                 //cout << "focus" << endl;
-                mWEL->onFocus();
+                mDetails.WEL->onFocus();
                 break;
             }
 
             case WM_KILLFOCUS:
             {
                 //cout << "blur" << endl;
-                mWEL->onBlur();
+                mDetails.WEL->onBlur();
                 break;
             }
 
@@ -296,15 +297,15 @@ namespace XPG
 
     void Context::runModule(Module* inModule)
     {
-        if (!mWidth || !inModule) return;
+        if (!mDetails.width || !inModule) return;
 
         mData->module = inModule;
         activeModule = inModule;
         activeContext = this;
-        activeWEL = mWEL;
-        activeWidth = &mWidth;
-        activeHeight = &mHeight;
-        mWEL->onResize(mWidth, mHeight);
+        activeWEL = mDetails.WEL;
+        activeWidth = &mDetails.width;
+        activeHeight = &mDetails.height;
+        mDetails.WEL->onResize(mDetails.width, mDetails.height);
         inModule->startRunning();
 
         while (inModule->isRunning())
@@ -321,7 +322,7 @@ namespace XPG
         if (!inTitle || strlen(inTitle) > 254) return;
 
         strcpy(mData->title, inTitle);
-        if (mWidth)
+        if (mDetails.width)
         {
             SetWindowText(mData->hWnd, mData->title);
             /// TODO: add error checking
@@ -334,6 +335,79 @@ namespace XPG
     }
 
     /// /// ///
+
+    Key::Code convertKeyCode(unsigned int inData)
+    {
+        switch (inData)
+        {
+            case 65: return Key::A;
+            case 66: return Key::B;
+            case 67: return Key::C;
+            case 68: return Key::D;
+            case 69: return Key::E;
+            case 70: return Key::F;
+            case 71: return Key::G;
+            case 72: return Key::H;
+            case 73: return Key::I;
+            case 74: return Key::J;
+            case 75: return Key::K;
+            case 76: return Key::L;
+            case 77: return Key::M;
+            case 78: return Key::N;
+            case 79: return Key::O;
+            case 80: return Key::P;
+            case 81: return Key::Q;
+            case 82: return Key::R;
+            case 83: return Key::S;
+            case 84: return Key::T;
+            case 85: return Key::U;
+            case 86: return Key::V;
+            case 87: return Key::W;
+            case 88: return Key::X;
+            case 89: return Key::Y;
+            case 90: return Key::Z;
+
+            case 48: return Key::TR0;
+            case 49: return Key::TR1;
+            case 50: return Key::TR2;
+            case 51: return Key::TR3;
+            case 52: return Key::TR4;
+            case 53: return Key::TR5;
+            case 54: return Key::TR6;
+            case 55: return Key::TR7;
+            case 56: return Key::TR8;
+            case 57: return Key::TR9;
+
+            case 192: return Key::BACK_QUOTE;
+            case 189: return Key::MINUS;
+            case 187: return Key::EQUALS;
+            case 8: return Key::BACKSPACE;
+            case 9: return Key::TAB;
+            case 219: return Key::LEFT_BRACKET;
+            case 221: return Key::RIGHT_BRACKET;
+            case 220: return Key::BACKSLASH;
+            case 20: return Key::CAPSLOCK;
+            case 186: return Key::SEMICOLON;
+            case 222: return Key::QUOTE;
+            case 13: return Key::ENTER;
+            case 188: return Key::COMMA;
+            case 190: return Key::PERIOD;
+            case 191: return Key::SLASH;
+
+            case 45: return Key::INSERT;
+            case 46: return Key::DEL;
+            case 36: return Key::HOME;
+            case 35: return Key::END;
+            case 33: return Key::PAGE_UP;
+            case 34: return Key::PAGE_DOWN;
+            case 37: return Key::LEFT;
+            case 39: return Key::RIGHT;
+            case 40: return Key::DOWN;
+            case 38: return Key::UP;
+
+            default: return Key::UNKNOWN;
+        }
+    }
 
     LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lparam)
     {

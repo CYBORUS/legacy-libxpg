@@ -150,8 +150,8 @@ int main(int argc, char** argv)
 
     XPG::Context::Parameters p;
 
-    p.width = 1024;
-    p.height = 768;
+    p.width = 640;
+    p.height = 480;
     p.WEL = &tm;
     p.MEL = &tm;
 
