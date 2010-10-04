@@ -42,14 +42,14 @@ namespace XPG
         Display* display;
         Window window;
         long eventMask;
+        Atom wmDeleteMessage;
+        bool active;
     };
 
-    Context::Context() : mWidth(0), mHeight(0), mDepth(0)
+    Context::Context()
     {
         mData = new PrivateData;
-        mMEL = &mDefaultMouse;
-        mKEL = &mDefaultKeyboard;
-        mWEL = &mDefaultWindow;
+        mData->active = false;
     }
 
     Context::~Context()
@@ -58,16 +58,15 @@ namespace XPG
         delete mData;
     }
 
-    void Context::create(int32u inWidth, int32u inHeight, int32u inDepth,
-        int32u inFlags)
+    void Context::create(const Parameters& inDetails)
     {
-        // mWidth will be set to a non-zero value if this context is already in
-        // use. mHeight and mDepth will be set as well, but mWidth is checked
-        // everywhere simply to be consistent.
-        if (mWidth) return;
+        if (mData->active) return;
+        mData->active = true;
 
-        mWidth = inWidth;
-        mHeight = inHeight;
+        mDetails = inDetails;
+        setWindowListener(mDetails.WEL);
+        setMouseListener(mDetails.MEL);
+        setKeyboardListener(mDetails.KEL);
 
         XSetWindowAttributes winAttribs;
         GLint winmask;
@@ -100,9 +99,8 @@ namespace XPG
         {
             cerr << "ERROR -- GLX 1.2 or greater is required\n";
             XCloseDisplay(mData->display);
-            mWidth = 0;
-            mHeight = 0;
-            mDepth = 0;
+
+            mData->active = false;
             return;
         }
 
@@ -114,7 +112,7 @@ namespace XPG
         mData->eventMask = ExposureMask | VisibilityChangeMask |
             KeyPressMask | PointerMotionMask | StructureNotifyMask
             | ButtonPressMask | ButtonReleaseMask | FocusChangeMask
-            | EnterWindowMask | LeaveWindowMask;
+            | EnterWindowMask | LeaveWindowMask | KeyReleaseMask;
         winAttribs.event_mask = mData->eventMask;
 
         winAttribs.border_pixel = 0;
@@ -124,11 +122,17 @@ namespace XPG
             AllocNone);
         winmask = CWBorderPixel | CWBitGravity | CWEventMask| CWColormap;
 
-        int d = mDepth ? mDepth : visualInfo->depth;
+        int d = mDetails.depth ? mDetails.depth : visualInfo->depth;
         mData->window = XCreateWindow(mData->display,
-            DefaultRootWindow(mData->display), 20, 20, mWidth, mHeight, 0,
-            d, InputOutput, visualInfo->visual, winmask,
+            DefaultRootWindow(mData->display), 20, 20, mDetails.width,
+            mDetails.height, 0, d, InputOutput, visualInfo->visual, winmask,
             &winAttribs);
+
+        // Allow XPG to handle the closing of the window.
+        mData->wmDeleteMessage = XInternAtom(mData->display, "WM_DELETE_WINDOW",
+            False);
+        XSetWMProtocols(mData->display, mData->window,
+            &mData->wmDeleteMessage, 1);
 
         XMapWindow(mData->display, mData->window);
 
@@ -137,6 +141,7 @@ namespace XPG
         {
             GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
             GLX_CONTEXT_MINOR_VERSION_ARB, 1,
+            //GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
             0
         };
 
@@ -170,20 +175,21 @@ namespace XPG
         cout << "found version ints: " << glVersion[0] << '.' << glVersion[1]
             << endl;
 
-        glViewport(0, 0, mWidth, mHeight);
+        glViewport(0, 0, mDetails.width, mDetails.height);
     }
 
     void Context::destroy()
     {
-        if (mWidth)
+        if (mData->active)
         {
             glXMakeCurrent(mData->display, None, NULL);
             glXDestroyContext(mData->display, mData->context);
             XDestroyWindow(mData->display, mData->window);
             XCloseDisplay(mData->display);
-            mWidth = 0;
-            mHeight = 0;
-            mDepth = 0;
+            mDetails.width = 0;
+            mDetails.height = 0;
+            mDetails.depth = 0;
+            mData->active = false;
         }
     }
 
@@ -196,9 +202,8 @@ namespace XPG
     {
         XEvent event;
         XWindowAttributes winData;
-        //XNextEvent(mData->display, &event);
 
-        if (XCheckWindowEvent(mData->display, mData->window,
+        while (XCheckWindowEvent(mData->display, mData->window,
             mData->eventMask, &event))
         {
             switch(event.type)
@@ -207,13 +212,14 @@ namespace XPG
                 {
                     switch (event.xbutton.button)
                     {
-                        case Button1: mMEL->onLeftButtonDown(); break;
-                        case Button2: mMEL->onMiddleButtonDown(); break;
-                        case Button3: mMEL->onRightButtonDown(); break;
-                        case Button4: mMEL->onWheelUp(); break;
-                        case Button5: mMEL->onWheelDown(); break;
+                        case Button1: mDetails.MEL->onLeftButtonDown(); break;
+                        case Button2: mDetails.MEL->onMiddleButtonDown(); break;
+                        case Button3: mDetails.MEL->onRightButtonDown(); break;
+                        case Button4: mDetails.MEL->onWheelUp(); break;
+                        case Button5: mDetails.MEL->onWheelDown(); break;
                         default:
-                            mMEL->onOtherButtonDown(event.xbutton.button);
+                            mDetails.MEL->onOtherButtonDown
+                                (event.xbutton.button);
                     }
 
                     break;
@@ -223,9 +229,9 @@ namespace XPG
                 {
                     switch (event.xbutton.button)
                     {
-                        case Button1: mMEL->onLeftButtonUp(); break;
-                        case Button2: mMEL->onMiddleButtonUp(); break;
-                        case Button3: mMEL->onRightButtonUp(); break;
+                        case Button1: mDetails.MEL->onLeftButtonUp(); break;
+                        case Button2: mDetails.MEL->onMiddleButtonUp(); break;
+                        case Button3: mDetails.MEL->onRightButtonUp(); break;
 
                         case Button4:
                         case Button5:
@@ -233,7 +239,7 @@ namespace XPG
                             break;
 
                         default:
-                            mMEL->onOtherButtonDown
+                            mDetails.MEL->onOtherButtonDown
                                 (event.xbutton.button);
                     }
 
@@ -243,28 +249,28 @@ namespace XPG
                 case FocusIn:
                 {
                     //cout << "FocusIn" << endl;
-                    mWEL->onFocus();
+                    mDetails.WEL->onFocus();
                     break;
                 }
 
                 case FocusOut:
                 {
                     //cout << "FocusOut" << endl;
-                    mWEL->onBlur();
+                    mDetails.WEL->onBlur();
                     break;
                 }
 
                 case EnterNotify:
                 {
                     //cout << "mouse in" << endl;
-                    mMEL->onEnterWindow();
+                    mDetails.MEL->onEnterWindow();
                     break;
                 }
 
                 case LeaveNotify:
                 {
                     //cout << "mouse out" << endl;
-                    mMEL->onLeaveWindow();
+                    mDetails.MEL->onLeaveWindow();
                     break;
                 }
 
@@ -274,30 +280,69 @@ namespace XPG
                 }
 
                 case MapNotify:
-                {
-                }
-
                 case ConfigureNotify:
                 {
                     XGetWindowAttributes(mData->display, mData->window,
                         &winData);
-                    mHeight = winData.height;
-                    mWidth = winData.width;
-                    glViewport(0, 0, mWidth, mHeight);
-                    mWEL->onResize(mWidth, mHeight);
+                    mDetails.height = winData.height;
+                    mDetails.width = winData.width;
+                    glViewport(0, 0, mDetails.width, mDetails.height);
+                    mDetails.WEL->onResize(mDetails.width, mDetails.height);
+                    break;
+                }
+
+                case ClientMessage:
+                {
+                    cout << "message" << endl;
+//                    if (event.xclient.format == 32 &&
+//                        event.xclient.data.l[0] == wmDeleteMessage)
+//                    {
+//                        cout << "quit" << endl;
+//                    }
                     break;
                 }
 
                 case MotionNotify:
                 {
-                    mMEL->onMove(event.xmotion.x, event.xmotion.y);
+                    mDetails.MEL->onMove(event.xmotion.x, event.xmotion.y);
                     break;
                 }
 
                 case KeyPress:
                 {
-                    cout << "key code -- " << event.xkey.keycode << endl;
-                    if (event.xkey.keycode == 9) mWEL->onExit();
+                    cout << "key press -- " << event.xkey.keycode << endl;
+                    if (event.xkey.keycode == 9) mDetails.WEL->onExit();
+                    break;
+                }
+
+                case KeyRelease:
+                {
+                    bool isRepeat = false;
+
+                    // X11 sends both a KeyPress and a KeyRelease when repeating
+                    // a key. The code below distinguishes between a true key
+                    // release and a key repeat. If it is a key repeat, it
+                    // properly disposes of the subsequent KeyPress message.
+                    if (XEventsQueued(mData->display, QueuedAfterReading))
+                    {
+                        XEvent e;
+                        XPeekEvent(mData->display, &e);
+                        if (e.type == KeyPress
+                            && e.xkey.time == event.xkey.time
+                            && e.xkey.keycode == event.xkey.keycode)
+                        {
+                            cout << "repeat key -- " << event.xkey.keycode
+                                << endl;
+                            XNextEvent(mData->display, &e);
+                            isRepeat = true;
+                        }
+                    }
+
+                    if (!isRepeat)
+                    {
+                        cout << "key release -- " << event.xkey.keycode << endl;
+                    }
+
                     break;
                 }
 
@@ -309,7 +354,7 @@ namespace XPG
 
                 default:
                 {
-                    //cout << "no event?" << endl;
+                    cout << "no event?" << endl;
                 }
             }
         }
@@ -317,25 +362,23 @@ namespace XPG
 
     void Context::runModule(Module* inModule)
     {
-        if (!mWidth || !inModule) return;
+        if (!mData->active || !inModule) return;
 
-        mWEL->onResize(mWidth, mHeight);
+        mDetails.WEL->onResize(mDetails.width, mDetails.height);
         inModule->startRunning();
 
-        int64u f = 0;
         while (inModule->isRunning())
         {
             dispatchEvents();
             inModule->onDisplay();
             swapBuffers();
-            //cout << f++ << endl;
             Idle(1);
         }
     }
 
     void Context::setWindowTitle(const char* inTitle)
     {
-        if (!mWidth || !inTitle) return;
+        if (!mData->active || !inTitle) return;
 
         XTextProperty titleProperty;
         Status status;
@@ -353,7 +396,7 @@ namespace XPG
 
     void Context::setIconTitle(const char* inTitle)
     {
-        if (!mWidth || !inTitle) return;
+        if (!mData->active || !inTitle) return;
 
         XTextProperty titleProperty;
         Status status;

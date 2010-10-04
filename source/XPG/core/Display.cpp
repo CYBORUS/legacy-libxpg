@@ -2,18 +2,24 @@
 
 namespace XPG
 {
+    Context::Parameters::Parameters() : width(800), height(600), depth(0),
+        fullScreen(false), WEL(NULL), MEL(NULL), KEL(NULL)
+    {
+
+    }
+
     void Context::setWindowListener(WindowEventListener* inListener)
     {
-        mWEL = inListener ? inListener : &mDefaultWindow;
+        mDetails.WEL = inListener ? inListener : &mDefaultWindow;
     }
 
     void Context::setMouseListener(MouseEventListener* inListener)
     {
-        mMEL = inListener ? inListener : &mDefaultMouse;
+        mDetails.MEL = inListener ? inListener : &mDefaultMouse;
     }
 
     void Context::setKeyboardListener(KeyboardEventListener* inListener)
     {
-        mKEL = inListener ? inListener : &mDefaultKeyboard;
+        mDetails.KEL = inListener ? inListener : &mDefaultKeyboard;
     }
 }

@@ -12,12 +12,22 @@ namespace XPG
             Context();
             ~Context();
 
-            inline int32u width() { return mWidth; }
-            inline int32u height() { return mHeight; }
-            inline int32u depth() { return mDepth; }
+            struct Parameters
+            {
+                Parameters();
 
-            void create(int32u inWidth, int32u inHeight, int32u inDepth = 0,
-                int32u inFlags = 0);
+                int32u width;
+                int32u height;
+                int32u depth;
+                bool fullScreen;
+                WindowEventListener* WEL;
+                MouseEventListener* MEL;
+                KeyboardEventListener* KEL;
+            };
+
+            inline const Parameters& details() { return mDetails; }
+
+            void create(const Parameters& inDetails = Parameters());
             void destroy();
             void swapBuffers();
             void dispatchEvents();
@@ -30,13 +40,7 @@ namespace XPG
             void setKeyboardListener(KeyboardEventListener* inListener = NULL);
 
         private:
-            int32u mWidth;
-            int32u mHeight;
-            int32u mDepth;
-
-            WindowEventListener* mWEL;
-            MouseEventListener* mMEL;
-            KeyboardEventListener* mKEL;
+            Parameters mDetails;
 
             WindowEventListener mDefaultWindow;
             MouseEventListener mDefaultMouse;

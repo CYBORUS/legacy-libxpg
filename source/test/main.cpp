@@ -146,30 +146,21 @@ int main(int argc, char** argv)
 //    cout << "Waiting..." << endl;
 //    mt.wait();
 
-    vec2f v;
-    v[0] = 5.5f;
-    v[1] = 9.9f;
-    vec2f w(v);
-    vec3f a;
-    vec4f b;
-    cout << v << endl;
-    cout << w << endl;
-
     TestModule tm;
 
+    XPG::Context::Parameters p;
+
+    p.width = 1024;
+    p.height = 768;
+    p.WEL = &tm;
+    p.MEL = &tm;
+
     XPG::Context c;
-    c.create(800, 600);
+    c.create(p);
     c.setWindowTitle("XPG OpenGL 3");
     c.setIconTitle("XPG-OGL3");
-    c.setMouseListener(&tm);
-    c.setWindowListener(&tm);
     c.runModule(&tm);
     c.destroy();
-
-//    c.create(1024, 768);
-//    c.setWindowTitle("XPG Round 2");
-//    c.setIconTitle("XPG-R2");
-//    c.runModule(&tm);
 
     return 0;
 }
