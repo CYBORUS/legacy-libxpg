@@ -12,6 +12,8 @@ using namespace std;
 
 namespace XPG
 {
+    Key::Code getKeyCode(int inIndex);
+    
     void SetGLXFunctionPointers()
     {
         static bool done = false;
@@ -354,7 +356,7 @@ namespace XPG
 
                 default:
                 {
-                    cout << "no event?" << endl;
+                    //cout << "no event?" << endl;
                 }
             }
         }
@@ -409,6 +411,14 @@ namespace XPG
             XSetTextProperty(mData->display, mData->window, &titleProperty,
                 XA_WM_ICON_NAME);
             XFree(titleProperty.value);
+        }
+    }
+    
+    Key::Code getKeyCode(int inIndex)
+    {
+        switch (inIndex)
+        {
+            default: return Key::UNKNOWN;
         }
     }
 }
