@@ -40,6 +40,7 @@
 			<Add library="GL" />
 			<Add library="X11" />
 		</Linker>
+		<Unit filename="../../XPG/ClusterVBO.hpp" />
 		<Unit filename="../../XPG/DataTypes.hpp" />
 		<Unit filename="../../XPG/Display.hpp" />
 		<Unit filename="../../XPG/Event.hpp" />

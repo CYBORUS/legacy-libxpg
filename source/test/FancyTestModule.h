@@ -4,6 +4,7 @@
 #include <XPG/Module.hpp>
 #include <XPG/Event.hpp>
 #include <XPG/Program.hpp>
+#include <XPG/ClusterVBO.hpp>
 
 class FancyTestModule : public XPG::Module, public XPG::MouseEventListener,
     public XPG::KeyboardEventListener, public XPG::WindowEventListener
@@ -20,6 +21,7 @@ class FancyTestModule : public XPG::Module, public XPG::MouseEventListener,
         XPG::Program mProgram;
         XPG::Shader mVS;
         XPG::Shader mFS;
+        XPG::ClusterVBO<2> mVBO;
 
         GLint mUniMVPM;
         mat4f mProjection;
