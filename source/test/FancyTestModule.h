@@ -1,10 +1,10 @@
 #ifndef FANCYTESTMODULE_H
 #define FANCYTESTMODULE_H
 
+#include <XPG/ClusterVBO.hpp>
 #include <XPG/Module.hpp>
 #include <XPG/Event.hpp>
 #include <XPG/Program.hpp>
-#include <XPG/ClusterVBO.hpp>
 
 class FancyTestModule : public XPG::Module, public XPG::MouseEventListener,
     public XPG::KeyboardEventListener, public XPG::WindowEventListener

@@ -1,6 +1,8 @@
 #ifndef XPGH_CLUSTERVBO
 #define XPGH_CLUSTERVBO
 
+#include <GL/glew.h>
+
 namespace XPG
 {
     template<size_t N>
