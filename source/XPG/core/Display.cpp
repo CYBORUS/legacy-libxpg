@@ -2,8 +2,9 @@
 
 namespace XPG
 {
-    Context::Parameters::Parameters() : width(800), height(600), depth(0),
-        fullScreen(false), WEL(NULL), MEL(NULL), KEL(NULL)
+    Context::Parameters::Parameters() : width(640), height(480), depth(0),
+        fullScreen(false), legacyContext(false), versionMajor(0),
+        versionMinor(0), WEL(NULL), MEL(NULL), KEL(NULL)
     {
 
     }

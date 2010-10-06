@@ -20,6 +20,9 @@ namespace XPG
                 int32u height;
                 int32u depth;
                 bool fullScreen;
+                bool legacyContext;
+                int16u versionMajor;
+                int16u versionMinor;
                 WindowEventListener* WEL;
                 MouseEventListener* MEL;
                 KeyboardEventListener* KEL;

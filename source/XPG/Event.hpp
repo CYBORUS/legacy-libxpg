@@ -56,15 +56,15 @@ namespace XPG
             X, Y, Z,
 
             /// function keys
-            F1, F2, F3, F4, F6, F7, F8, F9, F10, F11, F12, F13, F14, F15, F16,
+            F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,
 
             /// top row numbers/symbols
-            BACK_QUOTE, TR1, TR2, TR3, TR4, TR5, TR6, TR7, TR8, TR9, TR0,
-            MINUS, EQUALS, BACKSPACE,
+            ESCAPE, BACK_QUOTE, TR1, TR2, TR3, TR4, TR5, TR6, TR7, TR8, TR9,
+            TR0, MINUS, EQUALS, BACKSPACE,
 
             /// symbols surrounding letter keys
             TAB, LEFT_BRACKET, RIGHT_BRACKET, BACKSLASH, CAPSLOCK, SEMICOLON,
-            QUOTE, ENTER, COMMA, PERIOD, SLASH,
+            QUOTE, ENTER, COMMA, PERIOD, SLASH, SPACE,
 
             /// mod keys
             LEFT_SHIFT, RIGHT_SHIFT, LEFT_CONTROL, RIGHT_CONTROL, LEFT_ALT,
@@ -72,7 +72,7 @@ namespace XPG
 
             /// control keys
             INSERT, HOME, PAGE_UP, PAGE_DOWN, END, DEL, UP, DOWN, LEFT,
-            RIGHT,
+            RIGHT, SCROLL_LOCK, PAUSE, PRINT_SCREEN,
 
             /// keypad
             KP0, KP1, KP2, KP3, KP4, KP5, KP6, KP7, KP8, KP9, KP_PERIOD,

@@ -17,7 +17,7 @@ typedef uint64_t int64u;
 
 typedef XPG::MatrixNxN<2, float> mat2f;
 typedef XPG::MatrixNxN<3, float> mat3f;
-typedef XPG::MatrixNxN<4, float> mat4f;
+typedef XPG::Matrix4x4<float> mat4f;
 
 typedef XPG::MatrixNxN<2, double> mat2d;
 typedef XPG::MatrixNxN<3, double> mat3d;

@@ -5,6 +5,7 @@
 #include <XPG/Display.hpp>
 
 #include "TestModule.h"
+#include "FancyTestModule.h"
 
 #include <cstdio>
 #include <cstring>
@@ -146,20 +147,28 @@ int main(int argc, char** argv)
 //    cout << "Waiting..." << endl;
 //    mt.wait();
 
-    TestModule tm;
-
-    XPG::Context::Parameters p;
-
-    p.width = 640;
-    p.height = 480;
-    p.WEL = &tm;
-    p.MEL = &tm;
-
     XPG::Context c;
-    c.create(p);
-    c.setWindowTitle("XPG OpenGL 3");
-    c.setIconTitle("XPG-OGL3");
-    c.runModule(&tm);
+    c.create();
+    c.setWindowTitle("XPG");
+    c.setIconTitle("XPG");
+
+    if (c.details().legacyContext)
+    {
+        TestModule tm;
+        c.setKeyboardListener(&tm);
+        c.setMouseListener(&tm);
+        c.setWindowListener(&tm);
+        c.runModule(&tm);
+    }
+    else
+    {
+        FancyTestModule ftm;
+        c.setKeyboardListener(&ftm);
+        c.setMouseListener(&ftm);
+        c.setWindowListener(&ftm);
+        c.runModule(&ftm);
+    }
+
     c.destroy();
 
     return 0;

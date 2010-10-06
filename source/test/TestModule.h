@@ -5,13 +5,14 @@
 #include <XPG/Event.hpp>
 
 class TestModule : public XPG::Module, public XPG::MouseEventListener,
-    public XPG::WindowEventListener
+    public XPG::WindowEventListener, public XPG::KeyboardEventListener
 {
     public:
         TestModule();
         virtual ~TestModule();
 
         /// event handlers
+        virtual void onKeyDown(XPG::Key::Code inKey);
         virtual void onExit();
         virtual void onMove(int32u inX, int32u inY);
         virtual void onResize(int32u inWidth, int32u inHeight);

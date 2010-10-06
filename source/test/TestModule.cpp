@@ -11,6 +11,22 @@ TestModule::~TestModule()
 {
 }
 
+void TestModule::onKeyDown(XPG::Key::Code inKey)
+{
+    using namespace XPG;
+
+    switch (inKey)
+    {
+        case Key::ESCAPE:
+        {
+            stopRunning();
+            break;
+        }
+
+        default: {}
+    }
+}
+
 void TestModule::onExit()
 {
     cout << "onExit" << endl;
