@@ -5,7 +5,7 @@
 #include <iostream>
 using namespace std;
 
-FancyTestModule::FancyTestModule()
+FancyTestModule::FancyTestModule() : mRotate(0.0f)
 {
     mVS.load("test.vs", GL_VERTEX_SHADER);
     mFS.load("test.fs", GL_FRAGMENT_SHADER);
@@ -67,6 +67,8 @@ void FancyTestModule::onDisplay()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     mModelView.loadIdentity();
+    mModelView.rotateZ(mRotate);
+    mRotate += 0.01f;
 
     (mMVP = mProjection).multiply(mModelView);
     glUniformMatrix4fv(mUniMVPM, 1, GL_FALSE, mMVP.array());

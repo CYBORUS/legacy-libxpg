@@ -1,9 +1,6 @@
 #ifndef XPGH_CLUSTERVBO
 #define XPGH_CLUSTERVBO
 
-//#include <iostream>
-//using namespace std;
-
 namespace XPG
 {
     template<size_t N>
