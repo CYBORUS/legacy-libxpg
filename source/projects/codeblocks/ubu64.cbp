@@ -60,7 +60,6 @@
 		<Unit filename="../../XPG/core/Event.cpp" />
 		<Unit filename="../../XPG/core/IndexVBO.cpp" />
 		<Unit filename="../../XPG/core/Module.cpp" />
-		<Unit filename="../../XPG/core/Program.cpp" />
 		<Unit filename="../../XPG/core/Shader.cpp" />
 		<Unit filename="../../XPG/core/Surface.cpp" />
 		<Unit filename="../../XPG/glew/glew.c">

@@ -1,7 +1,7 @@
 #ifndef XPGH_CLUSTERVBO
 #define XPGH_CLUSTERVBO
 
-#include <GL/glew.h>
+#include "IndexVBO.hpp"
 
 namespace XPG
 {
@@ -12,6 +12,7 @@ namespace XPG
             ClusterVBO();
             ~ClusterVBO();
 
+            void display(const IndexVBO& inIVBO) const;
             void display(GLenum inMode, GLint inFirst, GLsizei inCount) const;
             void loadVAA(GLuint inVAI, GLuint inVPP, GLuint inSize,
                 const GLfloat* inData, GLenum inUsage = GL_STATIC_DRAW);
@@ -31,6 +32,22 @@ namespace XPG
     ClusterVBO<N>::~ClusterVBO()
     {
         glDeleteBuffers(N, mVBOI);
+    }
+
+    template<size_t N>
+    void ClusterVBO<N>::display(const IndexVBO& inIVBO) const
+    {
+        for (size_t i = 0; i < N; ++i)
+        {
+            glBindBuffer(GL_ARRAY_BUFFER, mVBOI[i]);
+            glVertexAttribPointer(i, mVPV[i], GL_FLOAT, GL_FALSE, 0, 0);
+            glEnableVertexAttribArray(i);
+        }
+
+        inIVBO.draw();
+
+        for (size_t i = 0; i < N; ++i)
+            glDisableVertexAttribArray(i);
     }
 
     template<size_t N>

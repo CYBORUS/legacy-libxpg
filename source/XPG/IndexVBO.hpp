@@ -11,11 +11,12 @@ namespace XPG
             IndexVBO();
             ~IndexVBO();
 
-            void draw(GLenum inMode = GL_TRIANGLES) const;
-            void loadData(GLuint inSize, const GLuint* inData,
+            void draw() const;
+            void loadData(GLenum inMode, GLuint inSize, const GLuint* inData,
                 GLenum inUsage = GL_STATIC_DRAW);
 
         private:
+            GLenum mMode;
             GLuint mBuffer;
             GLuint mSize;
     };

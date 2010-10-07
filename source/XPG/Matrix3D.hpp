@@ -12,164 +12,6 @@
 
 namespace XPG
 {
-    template<size_t N, typename T>
-    class MatrixNxN
-    {
-        public:
-            MatrixNxN<N, T>();
-
-            template<size_t N2>
-            MatrixNxN<N, T>(const MatrixNxN<N2, T>& inMatrix)
-            {
-                if (N == N2)
-                {
-                    memcpy(MatrixNxN<N, T>::mData, inMatrix.array(),
-                           N * N * sizeof(T));
-                }
-                else if (N > N2)
-                {
-                    loadIdentity();
-                    for (size_t i = 0; i < N2; ++i)
-                    {
-                        for (size_t j = 0; j < N2; ++j)
-                        {
-                            (*this)(i, j) = inMatrix(i, j);
-                        }
-                    }
-                }
-                else
-                {
-                    for (size_t i = 0; i < N; ++i)
-                    {
-                        for (size_t j = 0; j < N; ++j)
-                        {
-                            (*this)(i, j) = inMatrix(i, j);
-                        }
-                    }
-                }
-            }
-
-            static void prepareIdentity();
-
-            void loadIdentity();
-
-            void multiply(const MatrixNxN<N, T>& inMatrix);
-
-            inline MatrixNxN<N, T>& operator=(const MatrixNxN<N, T>& inMatrix)
-            {
-                if (this != &inMatrix) copy(inMatrix);
-            }
-
-            inline MatrixNxN<N, T>& operator*=(const MatrixNxN<N, T>& inMatrix)
-            {
-                multiply(inMatrix);
-                return *this;
-            }
-
-            inline T* array() {
-                return mData;
-            }
-            inline const T* array() const {
-                return mData;
-            }
-            inline T& operator[](size_t inIndex) {
-                return mData[inIndex];
-            }
-            inline T operator[](size_t inIndex) const {
-                return mData[inIndex];
-            }
-
-            inline T& operator()(size_t inRow, size_t inCol)
-            {
-                return mData[inCol * N + inRow];
-            }
-
-            inline T operator()(size_t inRow, size_t inCol) const
-            {
-                return mData[inCol * N + inRow];
-            }
-
-            inline bool operator==(const MatrixNxN& inMatrix) const
-            {
-                return !memcmp(mData, inMatrix.mData, (N * N) * sizeof(T));
-            }
-
-            inline bool operator!=(const MatrixNxN& inMatrix) const
-            {
-                return memcmp(mData, inMatrix.mData, (N * N) * sizeof(T));
-            }
-
-            inline void copy(const MatrixNxN<N, T>& inMatrix)
-            {
-                memcpy(mData, inMatrix.mData, (N * N) * sizeof(T));
-            }
-
-        private:
-            T mData[N * N];
-
-            static T mIdentity[N * N];
-    };
-
-    template<size_t N, typename T>
-    T MatrixNxN<N, T>::mIdentity[N * N];
-
-    template<size_t N, typename T>
-    void MatrixNxN<N, T>::prepareIdentity()
-    {
-        for (size_t i = 0; i < (N * N); ++i)
-            mIdentity[i] = i % (N + 1) ? static_cast<T>(0) : static_cast<T>(1);
-    }
-
-    template<size_t N, typename T>
-    MatrixNxN<N, T>::MatrixNxN()
-    {
-        loadIdentity();
-    }
-
-    template<size_t N, typename T>
-    void MatrixNxN<N, T>::loadIdentity()
-    {
-        memcpy(mData, mIdentity, (N * N) * sizeof(T));
-    }
-
-    template<size_t N, typename T>
-    void MatrixNxN<N, T>::multiply(const MatrixNxN<N, T>& inMatrix)
-    {
-        MatrixNxN<N, T> m(*this);
-
-        for (size_t i = 0; i < N; ++i)
-        {
-            for (size_t j = 0; j < N; ++j)
-            {
-                T value = static_cast<T>(0);
-                for (size_t k = 0; k < N; ++k)
-                    value += m(i, k) * inMatrix(k, j);
-
-                //at(i, j) = value;
-                mData[j * N + i] = value;
-            }
-        }
-    }
-
-    template<size_t N, typename T>
-    std::ostream& operator<<(std::ostream& inStream,
-                             const MatrixNxN<N, T>& inMatrix)
-    {
-        inStream << std::setprecision(4);
-        for (size_t i = 0; i < N; ++i)
-        {
-            if (i) inStream << '\n';
-            for (size_t j = 0; j < N; ++j)
-            {
-                inStream << std::setw(8) << inMatrix(i, j);
-            }
-        }
-
-        return inStream;
-    }
-
-    //////////////////////////////////////////////////////////////////
-
     template<typename T>
     class Matrix4x4
     {
@@ -195,10 +37,10 @@ namespace XPG
 
             /// projection
             void frustrum(T inLeft, T inRight, T inBottom, T inTop, T inNear,
-                          T inFar);
+                T inFar);
             void perspective(T inFieldOfView, T inRatio, T inNear, T inFar);
             void orthographic(T inLeft, T inRight, T inBottom, T inTop, T inNear,
-                              T inFar);
+                T inFar);
             void orthographic(T inRange, T inRatio);
 
             /// matrix operators
@@ -208,18 +50,10 @@ namespace XPG
             void copyInverseTo(Matrix4x4<T>& inMatrix) const;
             const Matrix4x4<T> inversed() const;
 
-            inline T* array() {
-                return mData;
-            }
-            inline const T* array() const {
-                return mData;
-            }
-            inline T& operator[](size_t inIndex) {
-                return mData[inIndex];
-            }
-            inline T operator[](size_t inIndex) const {
-                return mData[inIndex];
-            }
+            inline T* array() { return mData; }
+            inline const T* array() const { return mData; }
+            inline T& operator[](size_t inIndex) { return mData[inIndex]; }
+            inline T operator[](size_t inIndex) const { return mData[inIndex]; }
 
             inline T& operator()(size_t inRow, size_t inCol)
             {
@@ -273,15 +107,13 @@ namespace XPG
             static const T mIdentity[16];
     };
 
-    typedef Matrix4x4<float> Matrix3D;
-
     template<typename T>
     const T Matrix4x4<T>::mIdentity[16] = {
         static_cast<T>(1), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0),
         static_cast<T>(0), static_cast<T>(1), static_cast<T>(0), static_cast<T>(0),
         static_cast<T>(0), static_cast<T>(0), static_cast<T>(1), static_cast<T>(0),
         static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(1)
-    };
+        };
 
     template<typename T>
     Matrix4x4<T>::Matrix4x4()
@@ -542,87 +374,38 @@ namespace XPG
     {
         Matrix4x4 result;
 
-        // keep for reference
-//    for (size_t i = 0; i < 4; ++i)
-//    {
-//        for (size_t j = 0; j < 4; ++j)
-//        {
-//            T value = 0.0f;
-//            for (size_t k = 0; k < 4; ++k)
-//                value += (*this)(i, k) * inMatrix(k, j);
-//
-//            result(i, j) = value;
-//        }
-//    }
-
         result[0] = (mData[0] * inMatrix[0]) + (mData[4] * inMatrix[1])
-                    + (mData[8] * inMatrix[2]) + (mData[12] * inMatrix[3]);
+            + (mData[8] * inMatrix[2]) + (mData[12] * inMatrix[3]);
         result[4] = (mData[0] * inMatrix[4]) + (mData[4] * inMatrix[5])
-                    + (mData[8] * inMatrix[6]) + (mData[12] * inMatrix[7]);
+            + (mData[8] * inMatrix[6]) + (mData[12] * inMatrix[7]);
         result[8] = (mData[0] * inMatrix[8]) + (mData[4] * inMatrix[9])
-                    + (mData[8] * inMatrix[10]) + (mData[12] * inMatrix[11]);
+            + (mData[8] * inMatrix[10]) + (mData[12] * inMatrix[11]);
         result[12] = (mData[0] * inMatrix[12]) + (mData[4] * inMatrix[13])
-                     + (mData[8] * inMatrix[14]) + (mData[12] * inMatrix[15]);
+            + (mData[8] * inMatrix[14]) + (mData[12] * inMatrix[15]);
         result[1] = (mData[1] * inMatrix[0]) + (mData[5] * inMatrix[1])
-                    + (mData[9] * inMatrix[2]) + (mData[13] * inMatrix[3]);
+            + (mData[9] * inMatrix[2]) + (mData[13] * inMatrix[3]);
         result[5] = (mData[1] * inMatrix[4]) + (mData[5] * inMatrix[5])
-                    + (mData[9] * inMatrix[6]) + (mData[13] * inMatrix[7]);
+            + (mData[9] * inMatrix[6]) + (mData[13] * inMatrix[7]);
         result[9] = (mData[1] * inMatrix[8]) + (mData[5] * inMatrix[9])
-                    + (mData[9] * inMatrix[10]) + (mData[13] * inMatrix[11]);
+            + (mData[9] * inMatrix[10]) + (mData[13] * inMatrix[11]);
         result[13] = (mData[1] * inMatrix[12]) + (mData[5] * inMatrix[13])
-                     + (mData[9] * inMatrix[14]) + (mData[13] * inMatrix[15]);
+            + (mData[9] * inMatrix[14]) + (mData[13] * inMatrix[15]);
         result[2] = (mData[2] * inMatrix[0]) + (mData[6] * inMatrix[1])
-                    + (mData[10] * inMatrix[2]) + (mData[14] * inMatrix[3]);
+            + (mData[10] * inMatrix[2]) + (mData[14] * inMatrix[3]);
         result[6] = (mData[2] * inMatrix[4]) + (mData[6] * inMatrix[5])
-                    + (mData[10] * inMatrix[6]) + (mData[14] * inMatrix[7]);
+            + (mData[10] * inMatrix[6]) + (mData[14] * inMatrix[7]);
         result[10] = (mData[2] * inMatrix[8]) + (mData[6] * inMatrix[9])
-                     + (mData[10] * inMatrix[10]) + (mData[14] * inMatrix[11]);
+            + (mData[10] * inMatrix[10]) + (mData[14] * inMatrix[11]);
         result[14] = (mData[2] * inMatrix[12]) + (mData[6] * inMatrix[13])
-                     + (mData[10] * inMatrix[14]) + (mData[14] * inMatrix[15]);
+            + (mData[10] * inMatrix[14]) + (mData[14] * inMatrix[15]);
         result[3] = (mData[3] * inMatrix[0]) + (mData[7] * inMatrix[1])
-                    + (mData[11] * inMatrix[2]) + (mData[15] * inMatrix[3]);
+            + (mData[11] * inMatrix[2]) + (mData[15] * inMatrix[3]);
         result[7] = (mData[3] * inMatrix[4]) + (mData[7] * inMatrix[5])
-                    + (mData[11] * inMatrix[6]) + (mData[15] * inMatrix[7]);
+            + (mData[11] * inMatrix[6]) + (mData[15] * inMatrix[7]);
         result[11] = (mData[3] * inMatrix[8]) + (mData[7] * inMatrix[9])
-                     + (mData[11] * inMatrix[10]) + (mData[15] * inMatrix[11]);
+            + (mData[11] * inMatrix[10]) + (mData[15] * inMatrix[11]);
         result[15] = (mData[3] * inMatrix[12]) + (mData[7] * inMatrix[13])
-                     + (mData[11] * inMatrix[14]) + (mData[15] * inMatrix[15]);
-
-
-        /** The program below was used to generate the code above.
-
-        #include <iostream>
-        #include <fstream>
-        using namespace std;
-
-        size_t toIndex(size_t inRow, size_t inCol)
-        {
-            return inCol * 4 + inRow;
-        }
-
-        int main(int argc, char** argv)
-        {
-            ofstream fout;
-            fout.open("code.txt");
-            for (size_t i = 0; i < 4; ++i)
-            {
-                for (size_t j = 0; j < 4; ++j)
-                {
-                    fout << "result[" << toIndex(i, j) << "] =";
-                    for (size_t k = 0; k < 4; ++k)
-                    {
-                        if (k > 0) fout << " +";
-                        fout << " (mData[" << toIndex(i, k) << "] * inMatrix["
-                            << toIndex(k, j) << "])";
-                    }
-                    fout << ';' << endl;
-                }
-            }
-            fout.close();
-            return 0;
-        }
-
-        **/
+            + (mData[11] * inMatrix[14]) + (mData[15] * inMatrix[15]);
 
         copy(result);
     }
@@ -809,7 +592,8 @@ namespace XPG
     }
 
     template<typename T>
-    std::ostream& operator<<(std::ostream& inStream, const Matrix4x4<T>& inMatrix)
+    std::ostream& operator<<(std::ostream& inStream,
+        const Matrix4x4<T>& inMatrix)
     {
         inStream << std::setprecision(2);
         for (size_t i = 0; i < 4; ++i)
