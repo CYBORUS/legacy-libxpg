@@ -26,8 +26,11 @@ class FancyTestModule : public XPG::Module, public XPG::MouseEventListener,
         XPG::IndexVBO mIVBO;
 
         GLint mUniMVPM;
+        GLint mUniMVM;
+        GLint mUniNM;
         mat4f mProjection;
         mat4f mModelView;
+        mat4f mNormalView;
         mat4f mMVP;
         float mRotate;
 };

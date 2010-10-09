@@ -1,21 +1,30 @@
 #version 150
 // in_Position was bound to attribute index 0 and in_Color was bound to attribute index 1
 uniform mat4 MVPM;
-in  vec2 in_Position;
-in  vec3 in_Color;
+uniform mat4 MVM;
+uniform mat4 NM;
+uniform vec3 lightPosition;
 
-// We output the ex_Color variable to the next shader in the chain
-out vec3 ex_Color;
-void main(void) {
-    // Since we are using flat lines, our input only had two points: x and y.
-    // Set the Z coordinate to 0 and W coordinate to 1
+in  vec4 in_Position;
+in  vec4 in_Color;
+in  vec3 in_Normal;
 
-    gl_Position = MVPM * vec4(in_Position.x, in_Position.y, 0.0, 1.0);
-
-    // GLSL allows shorthand use of vectors too, the following is also valid:
-    // gl_Position = vec4(in_Position, 0.0, 1.0);
-    // We're simply passing the color through unmodified
-
+out vec4 ex_Color;
+out vec3 ex_Normal;
+out vec3 ex_LightDir;
+void main(void)
+{
+    vec4 p = in_Position;
+    p.w = 1.0;
+    
+    ex_Normal = vec3(NM * vec4(in_Normal, 1.0));
+    
+    vec4 vPosition4 = MVM * p;
+    vec3 vPosition3 = vPosition4.xyz / vPosition4.w;
+    
+    ex_LightDir = normalize(lightPosition - vPosition3);
+    
+    gl_Position = MVPM * p;
     ex_Color = in_Color;
 }
 

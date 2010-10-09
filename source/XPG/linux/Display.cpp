@@ -553,7 +553,6 @@ namespace XPG
             case 91: return Key::KP_PERIOD;
 
             default:
-                cout << "unknown key" << endl;
                 return Key::UNKNOWN;
         }
     }

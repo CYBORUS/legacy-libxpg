@@ -14,7 +14,7 @@ namespace XPG
 
             void display(const IndexVBO& inIVBO) const;
             void display(GLenum inMode, GLint inFirst, GLsizei inCount) const;
-            void loadVAA(GLuint inVAI, GLuint inVPP, GLuint inSize,
+            void loadVAA(GLuint inVAI, GLuint inVPV, GLuint inSize,
                 const GLfloat* inData, GLenum inUsage = GL_STATIC_DRAW);
 
         private:
@@ -68,10 +68,10 @@ namespace XPG
     }
 
     template<size_t N>
-    void ClusterVBO<N>::loadVAA(GLuint inVAI, GLuint inVPP, GLuint inSize,
+    void ClusterVBO<N>::loadVAA(GLuint inVAI, GLuint inVPV, GLuint inSize,
         const GLfloat* inData, GLenum inUsage)
     {
-        mVPV[inVAI] = inVPP;
+        mVPV[inVAI] = inVPV;
         glBindBuffer(GL_ARRAY_BUFFER, mVBOI[inVAI]);
         glBufferData(GL_ARRAY_BUFFER, inSize * sizeof(GLfloat) * mVPV[inVAI],
             inData, inUsage);

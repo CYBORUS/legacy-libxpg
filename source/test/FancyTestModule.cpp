@@ -9,6 +9,7 @@ using namespace std;
 FancyTestModule::FancyTestModule() : mRotate(0.0f)
 {
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
     glFrontFace(GL_CW);
     glCullFace(GL_BACK);
 
@@ -21,20 +22,31 @@ FancyTestModule::FancyTestModule() : mRotate(0.0f)
     mProgram.bindAttribLocation(2, "in_Normal");
     mProgram.link();
     mUniMVPM = mProgram.getUniformLocation("MVPM");
+    mUniMVM = mProgram.getUniformLocation("MVM");
+    mUniNM = mProgram.getUniformLocation("NM");
 
     GLint u;
     vec4f v(0.0f, 0.0f, 0.0f, 1.0f);
     u = mProgram.getUniformLocation("ambientColor");
-    glUniform4fv(u, 4, v.array());
+    glUniform4fv(u, 1, v.array());
 
     u = mProgram.getUniformLocation("diffuseColor");
-    glUniform4fv(u, 4, v.array());
+    v[0] = 0.8f;
+    v[1] = 0.8f;
+    v[2] = 0.8f;
+    glUniform4fv(u, 1, v.array());
 
     u = mProgram.getUniformLocation("specularColor");
-    glUniform4fv(u, 4, v.array());
+    v[0] = 0.0f;
+    v[1] = 0.0f;
+    v[2] = 0.0f;
+    v[3] = 0.0f;
+    glUniform4fv(u, 1, v.array());
 
     u = mProgram.getUniformLocation("lightPosition");
-    glUniform4fv(u, 3, v.array());
+    v[0] = 5.0f;
+    v[2] = 100.0f;
+    glUniform3fv(u, 1, v.array());
 
     GLfloat points[24] = {
         1.0f, 1.0f, 1.0f,
@@ -115,21 +127,25 @@ void FancyTestModule::onResize(int32u inWidth, int32u inHeight)
 {
     float ratio = static_cast<float>(inWidth) / static_cast<float>(inHeight);
     mProjection.loadIdentity();
-    //mProjection.orthographic(2.0f, ratio);
-    mProjection.perspective(30.0f, ratio, 1.0f, 1000.0f);
+    mProjection.perspective(30.0f, ratio, 1.0f, 100.0f);
 }
 
 void FancyTestModule::onDisplay()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     mModelView.loadIdentity();
+    mNormalView.loadIdentity();
     mModelView.translate(0.0f, 0.0f, -10.0f);
     mModelView.rotateX(mRotate);
+    mNormalView.rotateX(mRotate);
     mModelView.rotateZ(mRotate);
+    mNormalView.rotateZ(mRotate);
     mRotate += 0.05f;
     if (mRotate > 180.0f) mRotate -= 360.0f;
 
     (mMVP = mProjection).multiply(mModelView);
     glUniformMatrix4fv(mUniMVPM, 1, GL_FALSE, mMVP.array());
+    glUniformMatrix4fv(mUniMVM, 1, GL_FALSE, mModelView.array());
+    glUniformMatrix4fv(mUniNM, 1, GL_FALSE, mNormalView.array());
     mVBO.display(mIVBO);
 }
