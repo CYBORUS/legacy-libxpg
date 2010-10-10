@@ -1,4 +1,5 @@
 #include "FancyTestModule.h"
+#include <XPG/Timer.hpp>
 #include <cmath>
 
 #define LDEBUG cout << "yarr -- " << __LINE__ << endl
@@ -8,6 +9,7 @@ using namespace std;
 
 FancyTestModule::FancyTestModule() : mRotate(0.0f)
 {
+    mNextFrame = XPG::GetTicks();
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glFrontFace(GL_CW);
@@ -140,8 +142,13 @@ void FancyTestModule::onDisplay()
     mNormalView.rotateX(mRotate);
     mModelView.rotateZ(mRotate);
     mNormalView.rotateZ(mRotate);
-    mRotate += 0.05f;
-    if (mRotate > 180.0f) mRotate -= 360.0f;
+
+    while (XPG::GetTicks() > mNextFrame)
+    {
+        mNextFrame += 25;
+        mRotate += 1.0f;
+        if (mRotate > 180.0f) mRotate -= 360.0f;
+    }
 
     (mMVP = mProjection).multiply(mModelView);
     glUniformMatrix4fv(mUniMVPM, 1, GL_FALSE, mMVP.array());

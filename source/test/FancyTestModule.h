@@ -33,6 +33,7 @@ class FancyTestModule : public XPG::Module, public XPG::MouseEventListener,
         mat4f mNormalView;
         mat4f mMVP;
         float mRotate;
+        int64u mNextFrame;
 };
 
 #endif

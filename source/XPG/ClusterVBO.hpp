@@ -16,6 +16,8 @@ namespace XPG
             void display(GLenum inMode, GLint inFirst, GLsizei inCount) const;
             void loadVAA(GLuint inVAI, GLuint inVPV, GLuint inSize,
                 const GLfloat* inData, GLenum inUsage = GL_STATIC_DRAW);
+            void editVAA(GLuint inVAI, GLuint inFirst, GLuint inSize,
+                const GLfloat* inData, GLenum inUsage = GL_STATIC_DRAW);
 
         private:
             GLuint mVBOI[N]; // vertex buffer objects indices
@@ -75,6 +77,15 @@ namespace XPG
         glBindBuffer(GL_ARRAY_BUFFER, mVBOI[inVAI]);
         glBufferData(GL_ARRAY_BUFFER, inSize * sizeof(GLfloat) * mVPV[inVAI],
             inData, inUsage);
+    }
+
+    template<size_t N>
+    void ClusterVBO<N>::editVAA(GLuint inVAI, GLuint inFirst, GLuint inSize,
+        const GLfloat* inData, GLenum inUsage)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, mVBOI[inVAI]);
+        glBufferSubData(GL_ARRAY_BUFFER, inFirst * sizeof(GLfloat)
+            * mVPV[inVAI], inSize * sizeof(GLfloat) * mVPV[inVAI], inData);
     }
 }
 

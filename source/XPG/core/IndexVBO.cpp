@@ -22,6 +22,11 @@ namespace XPG
             inUsage);
     }
 
+    void IndexVBO::setMode(GLenum inMode)
+    {
+        mMode = inMode;
+    }
+
     void IndexVBO::draw() const
     {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mBuffer);
