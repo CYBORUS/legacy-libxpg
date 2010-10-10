@@ -35,13 +35,13 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-DGLEW_STATIC" />
 			<Add directory="..\..\XPG\glew" />
 		</Compiler>
 		<Linker>
 			<Add library="ws2_32" />
 			<Add library="opengl32" />
 			<Add library="gdi32" />
-			<Add library="..\..\..\glew32.dll" />
 		</Linker>
 		<Unit filename="..\..\XPG\ClusterVBO.hpp" />
 		<Unit filename="..\..\XPG\DataTypes.hpp" />
@@ -65,6 +65,9 @@
 		<Unit filename="..\..\XPG\core\Module.cpp" />
 		<Unit filename="..\..\XPG\core\Shader.cpp" />
 		<Unit filename="..\..\XPG\core\Surface.cpp" />
+		<Unit filename="..\..\XPG\glew\glew.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\..\XPG\win32\Display.cpp" />
 		<Unit filename="..\..\XPG\win32\Mutex.cpp" />
 		<Unit filename="..\..\XPG\win32\Network.cpp" />
