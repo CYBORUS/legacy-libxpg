@@ -9,23 +9,25 @@ namespace XPG
     class ClusterVBO
     {
         public:
-            ClusterVBO();
+            ClusterVBO(GLenum inUsage = GL_STATIC_DRAW);
             ~ClusterVBO();
 
             void display(const IndexVBO& inIVBO) const;
             void display(GLenum inMode, GLint inFirst, GLsizei inCount) const;
+            void setUsage(GLenum inUsage);
             void loadVAA(GLuint inVAI, GLuint inVPV, GLuint inSize,
-                const GLfloat* inData, GLenum inUsage = GL_STATIC_DRAW);
+                const GLfloat* inData);
             void editVAA(GLuint inVAI, GLuint inFirst, GLuint inSize,
-                const GLfloat* inData, GLenum inUsage = GL_STATIC_DRAW);
+                const GLfloat* inData);
 
         private:
+            GLenum mUsage;
             GLuint mVBOI[N]; // vertex buffer objects indices
             GLuint mVPV[N]; // values per vertex
     };
 
     template<size_t N>
-    ClusterVBO<N>::ClusterVBO()
+    ClusterVBO<N>::ClusterVBO(GLenum inUsage) : mUsage(inUsage)
     {
         glGenBuffers(N, mVBOI);
     }
@@ -70,18 +72,24 @@ namespace XPG
     }
 
     template<size_t N>
+    void ClusterVBO<N>::setUsage(GLenum inUsage)
+    {
+        mUsage = inUsage;
+    }
+
+    template<size_t N>
     void ClusterVBO<N>::loadVAA(GLuint inVAI, GLuint inVPV, GLuint inSize,
-        const GLfloat* inData, GLenum inUsage)
+        const GLfloat* inData)
     {
         mVPV[inVAI] = inVPV;
         glBindBuffer(GL_ARRAY_BUFFER, mVBOI[inVAI]);
         glBufferData(GL_ARRAY_BUFFER, inSize * sizeof(GLfloat) * mVPV[inVAI],
-            inData, inUsage);
+            inData, mUsage);
     }
 
     template<size_t N>
     void ClusterVBO<N>::editVAA(GLuint inVAI, GLuint inFirst, GLuint inSize,
-        const GLfloat* inData, GLenum inUsage)
+        const GLfloat* inData)
     {
         glBindBuffer(GL_ARRAY_BUFFER, mVBOI[inVAI]);
         glBufferSubData(GL_ARRAY_BUFFER, inFirst * sizeof(GLfloat)
