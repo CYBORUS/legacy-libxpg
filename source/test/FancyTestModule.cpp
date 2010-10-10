@@ -28,20 +28,20 @@ FancyTestModule::FancyTestModule() : mRotate(0.0f)
     mUniNM = mProgram.getUniformLocation("NM");
 
     GLint u;
-    vec4f v(0.0f, 0.0f, 0.0f, 1.0f);
+    vec4f v(0.1f, 0.1f, 0.1f, 1.0f);
     u = mProgram.getUniformLocation("ambientColor");
     glUniform4fv(u, 1, v.array());
 
     u = mProgram.getUniformLocation("diffuseColor");
-    v[0] = 0.8f;
-    v[1] = 0.8f;
-    v[2] = 0.8f;
+    v[0] = 1.0f;
+    v[1] = 1.0f;
+    v[2] = 1.0f;
     glUniform4fv(u, 1, v.array());
 
     u = mProgram.getUniformLocation("specularColor");
-    v[0] = 0.0f;
-    v[1] = 0.0f;
-    v[2] = 0.0f;
+    v[0] = 1.0f;
+    v[1] = 1.0f;
+    v[2] = 1.0f;
     v[3] = 0.0f;
     glUniform4fv(u, 1, v.array());
 
@@ -107,6 +107,11 @@ FancyTestModule::FancyTestModule() : mRotate(0.0f)
 FancyTestModule::~FancyTestModule()
 {
     mProgram.clear();
+}
+
+void FancyTestModule::onExit()
+{
+    stopRunning();
 }
 
 void FancyTestModule::onKeyDown(XPG::Key::Code inKey)

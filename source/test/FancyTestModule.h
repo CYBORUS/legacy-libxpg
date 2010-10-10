@@ -14,6 +14,7 @@ class FancyTestModule : public XPG::Module, public XPG::MouseEventListener,
         FancyTestModule();
         virtual ~FancyTestModule();
 
+        virtual void onExit();
         virtual void onDisplay();
         virtual void onKeyDown(XPG::Key::Code inKey);
         virtual void onResize(int32u inWidth, int32u inHeight);

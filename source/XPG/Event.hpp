@@ -87,6 +87,45 @@ namespace XPG
             virtual void onKeyRepeat(Key::Code inKey);
             virtual void onKeyUp(Key::Code inKey);
     };
+
+    struct WindowEvent
+    {
+        enum { FOCUS, BLUR, MINIMIZE, MAXIMIZE, RESTORE, RESIZE, EXIT } event;
+        int32u width;
+        int32u height;
+    };
+
+    struct MouseEvent
+    {
+        enum { MOTION, BUTTON_DOWN, BUTTON_UP, WHEEL_DOWN, WHEEL_UP,
+            LEAVE_WINDOW, ENTER_WINDOW } event;
+        int8u button;
+        int32u x;
+        int32u y;
+    };
+
+    struct JoystickEvent
+    {
+        enum { AXIS, BUTTON_DOWN, BUTTON_UP, HAT, BALL } event;
+        int8u button;
+        int32s x;
+        int32s y;
+    };
+
+    struct KeyboardEvent
+    {
+        enum { PRESS, REPEAT, RELEASE } event;
+        Key::Code key;
+    };
+
+    struct Event
+    {
+        enum { NONE, WINDOW, MOUSE, JOYSTICK, KEYBOARD } type;
+        WindowEvent window;
+        MouseEvent mouse;
+        JoystickEvent joystick;
+        KeyboardEvent keyboard;
+    };
 }
 
 #endif

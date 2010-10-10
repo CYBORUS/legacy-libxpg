@@ -219,12 +219,11 @@ namespace XPG
 
     void Context::dispatchEvents()
     {
-        XEvent event;
-        XWindowAttributes winData;
-
-        while (XCheckWindowEvent(mData->display, mData->window,
-            mData->eventMask, &event))
+        while (XEventsQueued(mData->display, QueuedAfterReading))
         {
+            XEvent event;
+            XNextEvent(mData->display, &event);
+
             switch(event.type)
             {
                 case ButtonPress:
@@ -301,6 +300,7 @@ namespace XPG
                 case MapNotify:
                 case ConfigureNotify:
                 {
+                    XWindowAttributes winData;
                     XGetWindowAttributes(mData->display, mData->window,
                         &winData);
                     mDetails.height = winData.height;
@@ -312,12 +312,12 @@ namespace XPG
 
                 case ClientMessage:
                 {
-                    cout << "message" << endl;
-//                    if (event.xclient.format == 32 &&
-//                        event.xclient.data.l[0] == wmDeleteMessage)
-//                    {
-//                        cout << "quit" << endl;
-//                    }
+                    //cout << "message" << endl;
+                    if (event.xclient.format == 32 &&
+                        event.xclient.data.l[0] == mData->wmDeleteMessage)
+                    {
+                        mDetails.WEL->onExit();
+                    }
                     break;
                 }
 

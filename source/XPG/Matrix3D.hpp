@@ -36,11 +36,11 @@ namespace XPG
             void smartMove(T inRX, T inRY, T inRZ, T inTX, T inTY, T inTZ);
 
             /// projection
-            void frustrum(T inLeft, T inRight, T inBottom, T inTop, T inNear,
+            void frustum(T inLeft, T inRight, T inBottom, T inTop, T inNear,
                 T inFar);
             void perspective(T inFieldOfView, T inRatio, T inNear, T inFar);
-            void orthographic(T inLeft, T inRight, T inBottom, T inTop, T inNear,
-                T inFar);
+            void orthographic(T inLeft, T inRight, T inBottom, T inTop,
+                T inNear, T inFar);
             void orthographic(T inRange, T inRatio);
 
             /// matrix operators
@@ -81,9 +81,9 @@ namespace XPG
                 return *this;
             }
 
-            inline const Matrix4x4 operator*(const Matrix4x4<T>& inMatrix) const
+            inline const Matrix4x4<T> operator*(const Matrix4x4<T>& inMatrix) const
             {
-                return Matrix4x4(*this) *= inMatrix;
+                return Matrix4x4<T>(*this) *= inMatrix;
             }
 
         private:
@@ -294,8 +294,8 @@ namespace XPG
     }
 
     template<typename T>
-    void Matrix4x4<T>::frustrum(T inLeft, T inRight, T inBottom, T inTop, T inNear,
-                                T inFar)
+    void Matrix4x4<T>::frustum(T inLeft, T inRight, T inBottom, T inTop,
+        T inNear, T inFar)
     {
         Matrix4x4<T> transform;
 
@@ -312,7 +312,8 @@ namespace XPG
     }
 
     template<typename T>
-    void Matrix4x4<T>::perspective(T inFieldOfView, T inRatio, T inNear, T inFar)
+    void Matrix4x4<T>::perspective(T inFieldOfView, T inRatio, T inNear,
+        T inFar)
     {
         /// adaptation of gluPerspective
         /// http://www.opengl.org/sdk/docs/man/xhtml/gluPerspective.xml
@@ -333,7 +334,7 @@ namespace XPG
 
     template<typename T>
     void Matrix4x4<T>::orthographic(T inLeft, T inRight, T inBottom, T inTop,
-                                    T inNear, T inFar)
+        T inNear, T inFar)
     {
         Matrix4x4<T> transform;
 
@@ -352,13 +353,13 @@ namespace XPG
     {
         if (inRatio < static_cast<T>(1))
         {
-            orthographic(-inRange, inRange, -inRange / inRatio, inRange / inRatio,
-                         static_cast<T>(-10), static_cast<T>(10));
+            orthographic(-inRange, inRange, -inRange / inRatio,
+                inRange / inRatio, -inRange, inRange);
         }
         else
         {
-            orthographic(-inRange * inRatio, inRange * inRatio, -inRange, inRange,
-                         static_cast<T>(-10), static_cast<T>(10));
+            orthographic(-inRange * inRatio, inRange * inRatio, -inRange,
+                inRange, -inRange, inRange);
         }
     }
 
@@ -372,7 +373,7 @@ namespace XPG
     template<typename T>
     void Matrix4x4<T>::multiply(const Matrix4x4<T>& inMatrix)
     {
-        Matrix4x4 result;
+        Matrix4x4<T> result;
 
         result[0] = (mData[0] * inMatrix[0]) + (mData[4] * inMatrix[1])
             + (mData[8] * inMatrix[2]) + (mData[12] * inMatrix[3]);
@@ -413,7 +414,7 @@ namespace XPG
     template<typename T>
     void Matrix4x4<T>::inverse()
     {
-        const Matrix4x4 m(*this);
+        const Matrix4x4<T> m(*this);
         m.copyInverseTo(*this);
     }
 
