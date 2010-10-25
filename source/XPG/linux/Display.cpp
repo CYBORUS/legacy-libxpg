@@ -312,9 +312,9 @@ namespace XPG
 
                 case ClientMessage:
                 {
-                    //cout << "message" << endl;
                     if (event.xclient.format == 32 &&
-                        event.xclient.data.l[0] == mData->wmDeleteMessage)
+                        static_cast<Atom>(event.xclient.data.l[0])
+                            == mData->wmDeleteMessage)
                     {
                         mDetails.WEL->onExit();
                     }
@@ -381,6 +381,212 @@ namespace XPG
                 }
             }
         }
+    }
+
+    bool Context::getEvent(Event& inEvent)
+    {
+        if (!XEventsQueued(mData->display, QueuedAfterReading))
+            return false;
+
+        XEvent event;
+        XNextEvent(mData->display, &event);
+
+        switch(event.type)
+        {
+            case ButtonPress:
+            {
+                inEvent.type = Event::MOUSE;
+                switch (event.xbutton.button)
+                {
+                    case Button1:
+                        inEvent.mouse.event = MouseEvent::BUTTON_DOWN;
+                        inEvent.mouse.button = MouseEvent::LEFT_BUTTON;
+                        break;
+
+                    case Button2:
+                        inEvent.mouse.event = MouseEvent::BUTTON_DOWN;
+                        inEvent.mouse.button = MouseEvent::MIDDLE_BUTTON;
+                        break;
+
+                    case Button3:
+                        inEvent.mouse.event = MouseEvent::BUTTON_DOWN;
+                        inEvent.mouse.button = MouseEvent::RIGHT_BUTTON;
+                        break;
+
+                    case Button4:
+                        inEvent.mouse.event = MouseEvent::WHEEL_UP;
+                        break;
+
+                    case Button5:
+                        inEvent.mouse.event = MouseEvent::WHEEL_DOWN;
+                        break;
+
+                    default:
+                        inEvent.mouse.event = MouseEvent::BUTTON_DOWN;
+                        inEvent.mouse.button = event.xbutton.button;
+                }
+
+                break;
+            }
+
+            case ButtonRelease:
+            {
+                inEvent.type = Event::MOUSE;
+                inEvent.mouse.event = MouseEvent::BUTTON_UP;
+
+                switch (event.xbutton.button)
+                {
+                    case Button1:
+                        inEvent.mouse.button = MouseEvent::LEFT_BUTTON;
+                        break;
+
+                    case Button2:
+                        inEvent.mouse.button = MouseEvent::MIDDLE_BUTTON;
+                        break;
+
+                    case Button3:
+                        inEvent.mouse.button = MouseEvent::RIGHT_BUTTON;
+                        break;
+
+                    case Button4:
+                    case Button5:
+                        inEvent.type = Event::NONE;
+                        break;
+
+                    default:
+                        inEvent.mouse.event = MouseEvent::BUTTON_DOWN;
+                        inEvent.mouse.button = event.xbutton.button;
+                }
+
+                break;
+            }
+
+            case FocusIn:
+            {
+                inEvent.type = Event::WINDOW;
+                inEvent.window.event = WindowEvent::FOCUS;
+                break;
+            }
+
+            case FocusOut:
+            {
+                inEvent.type = Event::WINDOW;
+                inEvent.window.event = WindowEvent::BLUR;
+                break;
+            }
+
+            case EnterNotify:
+            {
+                inEvent.type = Event::MOUSE;
+                inEvent.mouse.event = MouseEvent::ENTER_WINDOW;
+                break;
+            }
+
+            case LeaveNotify:
+            {
+                inEvent.type = Event::MOUSE;
+                inEvent.mouse.event = MouseEvent::LEAVE_WINDOW;
+                break;
+            }
+
+            case UnmapNotify:
+            {
+                break;
+            }
+
+            case MapNotify:
+            case ConfigureNotify:
+            {
+                XWindowAttributes winData;
+                XGetWindowAttributes(mData->display, mData->window,
+                    &winData);
+                mDetails.height = winData.height;
+                mDetails.width = winData.width;
+                glViewport(0, 0, mDetails.width, mDetails.height);
+                inEvent.type = Event::WINDOW;
+                inEvent.window.event = WindowEvent::RESIZE;
+                inEvent.window.width = mDetails.width;
+                inEvent.window.height = mDetails.height;
+                break;
+            }
+
+            case ClientMessage:
+            {
+                if (event.xclient.format == 32 &&
+                    static_cast<Atom>(event.xclient.data.l[0])
+                        == mData->wmDeleteMessage)
+                {
+                    inEvent.type = Event::WINDOW;
+                    inEvent.window.event = WindowEvent::EXIT;
+                }
+                break;
+            }
+
+            case MotionNotify:
+            {
+                inEvent.type = Event::MOUSE;
+                inEvent.mouse.event = MouseEvent::MOTION;
+                inEvent.mouse.x = event.xmotion.x;
+                inEvent.mouse.y = event.xmotion.y;
+                break;
+            }
+
+            case KeyPress:
+            {
+                inEvent.type = Event::KEYBOARD;
+                inEvent.keyboard.event = KeyboardEvent::PRESS;
+                inEvent.keyboard.key = getKeyCode(event.xkey.keycode);
+                break;
+            }
+
+            case KeyRelease:
+            {
+                bool isRepeat = false;
+                inEvent.type = Event::KEYBOARD;
+                inEvent.keyboard.key = getKeyCode(event.xkey.keycode);
+
+                // X11 sends both a KeyPress and a KeyRelease when repeating
+                // a key. The code below distinguishes between a true key
+                // release and a key repeat. If it is a key repeat, it
+                // properly disposes of the subsequent KeyPress message.
+                if (XEventsQueued(mData->display, QueuedAfterReading))
+                {
+                    XEvent e;
+                    XPeekEvent(mData->display, &e);
+                    if (e.type == KeyPress
+                        && e.xkey.time == event.xkey.time
+                        && e.xkey.keycode == event.xkey.keycode)
+                    {
+                        inEvent.keyboard.event = KeyboardEvent::REPEAT;
+
+                        // dispose of the next event
+                        XNextEvent(mData->display, &e);
+
+                        isRepeat = true;
+                    }
+                }
+
+                if (!isRepeat)
+                {
+                    inEvent.keyboard.event = KeyboardEvent::RELEASE;
+                }
+
+                break;
+            }
+
+            case DestroyNotify:
+            {
+                cout << "destroy" << endl;
+                break;
+            }
+
+            default:
+            {
+                //cout << "no event?" << endl;
+            }
+        }
+
+        return true;
     }
 
     void Context::runModule(Module* inModule)

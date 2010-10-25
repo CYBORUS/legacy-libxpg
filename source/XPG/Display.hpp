@@ -34,6 +34,7 @@ namespace XPG
             void destroy();
             void swapBuffers();
             void dispatchEvents();
+            bool getEvent(Event& inEvent);
             void runModule(Module* inModule);
             void setWindowTitle(const char* inTitle);
             void setIconTitle(const char* inTitle);

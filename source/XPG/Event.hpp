@@ -99,6 +99,7 @@ namespace XPG
     {
         enum { MOTION, BUTTON_DOWN, BUTTON_UP, WHEEL_DOWN, WHEEL_UP,
             LEAVE_WINDOW, ENTER_WINDOW } event;
+        enum { LEFT_BUTTON = 1, RIGHT_BUTTON = 2, MIDDLE_BUTTON = 3 };
         int8u button;
         int32u x;
         int32u y;

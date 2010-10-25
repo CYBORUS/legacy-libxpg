@@ -10,21 +10,29 @@
 
 namespace XPG
 {
+    typedef volatile const bool& StopFlag;
+
+    class Task
+    {
+        public:
+            virtual void run(StopFlag) = 0;
+    };
+
     class Thread
     {
         public:
             Thread();
-            virtual ~Thread();
+            ~Thread();
 
-            void runConcurrently();
+            void start(Task* inTask = NULL);
+            void launch();
             void wait();
             inline bool isRunning() { return mRunning; }
             inline void stop() { mStop = true; }
-            inline bool stopRequested() { return mStop; }
-
-            virtual void run() = 0;
 
         private:
+            Task* mTask;
+            volatile bool mReady;
             volatile bool mRunning;
             volatile bool mStop;
 
@@ -35,8 +43,6 @@ namespace XPG
             static DWORD WINAPI createThread(LPVOID inData);
 #elif defined(XPG_OS_UNIX)
             pthread_t mThread;
-
-            static void* createThread(void* inData);
 #endif
     };
 }
