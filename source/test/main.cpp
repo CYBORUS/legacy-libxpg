@@ -26,14 +26,16 @@ class MyTask : public XPG::Task
 /// run test code
 int main(int argc, char** argv)
 {
-    MyTask task;
-    XPG::Thread t;
-    cout << "main is starting the task..." << endl;
-    t.start(&task);
-    XPG::Idle(3500);
-    cout << "main is stopping the task..." << endl;
-    t.stop();
-    t.wait();
+//    MyTask task;
+//    XPG::Thread t;
+//    cout << "main is starting the task..." << endl;
+//    t.start(&task);
+//    XPG::Idle(3500);
+//    cout << "main is stopping the task..." << endl;
+//    t.stop();
+//    t.wait();
+
+    cout << sizeof(float) << ' ' << sizeof(mat4f) << endl;
 
     XPG::Context c;
     c.create();

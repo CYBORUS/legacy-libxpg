@@ -155,8 +155,8 @@ void FancyTestModule::onDisplay()
         if (mRotate > 180.0f) mRotate -= 360.0f;
     }
 
-    (mMVP = mProjection).multiply(mModelView);
-    glUniformMatrix4fv(mUniMVPM, 1, GL_FALSE, mMVP.array());
+    mat4f mvp(mProjection, mModelView);
+    glUniformMatrix4fv(mUniMVPM, 1, GL_FALSE, mvp.array());
     glUniformMatrix4fv(mUniMVM, 1, GL_FALSE, mModelView.array());
     glUniformMatrix4fv(mUniNM, 1, GL_FALSE, mNormalView.array());
     mVBO.display(mIVBO);
