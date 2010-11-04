@@ -7,7 +7,7 @@
 #include <iostream>
 using namespace std;
 
-FancyTestModule::FancyTestModule() : mRotate(0.0f)
+FancyTestModule::FancyTestModule(bool inLegacy) : mRotate(0.0f)
 {
     mNextFrame = XPG::GetTicks();
     glEnable(GL_DEPTH_TEST);
@@ -15,8 +15,11 @@ FancyTestModule::FancyTestModule() : mRotate(0.0f)
     glFrontFace(GL_CW);
     glCullFace(GL_BACK);
 
-    mVS.load("test.vs", GL_VERTEX_SHADER);
-    mFS.load("test.fs", GL_FRAGMENT_SHADER);
+    const char* vsf = inLegacy ? "test-legacy.vs" : "test.vs";
+    const char* fsf = inLegacy ? "test-legacy.fs" : "test.fs";
+
+    mVS.load(vsf, GL_VERTEX_SHADER);
+    mFS.load(fsf, GL_FRAGMENT_SHADER);
     mProgram.attachShader(mVS);
     mProgram.attachShader(mFS);
     mProgram.bindAttribLocation(0, "in_Position");
@@ -156,8 +159,8 @@ void FancyTestModule::onDisplay()
     }
 
     mat4f mvp(mProjection, mModelView);
-    glUniformMatrix4fv(mUniMVPM, 1, GL_FALSE, mvp.array());
-    glUniformMatrix4fv(mUniMVM, 1, GL_FALSE, mModelView.array());
-    glUniformMatrix4fv(mUniNM, 1, GL_FALSE, mNormalView.array());
+    glUniformMatrix4fv(mUniMVPM, 1, GL_FALSE, mvp);
+    glUniformMatrix4fv(mUniMVM, 1, GL_FALSE, mModelView);
+    glUniformMatrix4fv(mUniNM, 1, GL_FALSE, mNormalView);
     mVBO.display(mIVBO);
 }

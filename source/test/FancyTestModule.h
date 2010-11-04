@@ -11,7 +11,7 @@ class FancyTestModule : public XPG::Module, public XPG::MouseEventListener,
     public XPG::KeyboardEventListener, public XPG::WindowEventListener
 {
     public:
-        FancyTestModule();
+        FancyTestModule(bool inLegacy);
         virtual ~FancyTestModule();
 
         virtual void onExit();

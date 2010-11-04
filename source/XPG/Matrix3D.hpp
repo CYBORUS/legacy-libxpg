@@ -55,11 +55,11 @@ namespace XPG
             void copyInverseTo(Matrix4x4<T>& inMatrix) const;
             const Matrix4x4<T> inversed() const;
 
-            inline T* array() { return mData; }
-            inline const T* array() const { return mData; }
-            inline T& operator[](size_t inIndex) { return mData[inIndex]; }
-            inline T operator[](size_t inIndex) const { return mData[inIndex]; }
+            /// Allow this object to behave as a simple array.
+            inline operator T*() { return mData; }
+            inline operator const T*() const { return mData; }
 
+            /// Allow simply access by row and column.
             inline T& operator()(size_t inRow, size_t inCol)
             {
                 return mData[inCol * 4 + inRow];
@@ -70,6 +70,7 @@ namespace XPG
                 return mData[inCol * 4 + inRow];
             }
 
+            /// simple comparison operators
             inline bool operator==(const Matrix4x4<T>& inMatrix) const
             {
                 return !memcmp(mData, inMatrix.mData, 16 * sizeof(T));
@@ -89,7 +90,7 @@ namespace XPG
             inline const Matrix4x4<T> operator*(const Matrix4x4<T>& inMatrix)
                 const
             {
-                return Matrix4x4<T>(mData) *= inMatrix;
+                return Matrix4x4<T>(Matrix4x4<T>(mData), inMatrix);
             }
 
         private:
@@ -108,11 +109,14 @@ namespace XPG
                 return mData[inCol * 4 + inRow];
             }
 
-            T mData[16];
+            T mData[16]; // stored in column-major order
 
             static const T mIdentity[16];
     };
 
+    /// The identity matrix is pre-built so that it can just be copied to newly
+    /// born matrices. This makes it faster than manually filling the identity
+    /// matrix and/or having to iterate through a loop.
     template<typename T>
     const T Matrix4x4<T>::mIdentity[16] = {
         SCT(1), SCT(0), SCT(0), SCT(0),
@@ -121,18 +125,29 @@ namespace XPG
         SCT(0), SCT(0), SCT(0), SCT(1)
         };
 
+    /// For increased compatibility, this matrix can read its data in from an
+    /// array. This also doubles as the default constructor: if no array is
+    /// specified, the pointer to the static identity matrix is passed in.
+    ///
+    /// IMPORTANT -- Because the array stores the matrix in column-major order,
+    /// it is assumed the incoming data is sorted the same way.
     template<typename T>
     Matrix4x4<T>::Matrix4x4(const T* inArray)
     {
         memcpy(mData, inArray, 16 * sizeof(T));
     }
 
+    /// This is a very simple copy constructor. It does a byte-for-byte copy of
+    /// target matrix's data.
     template<typename T>
     Matrix4x4<T>::Matrix4x4(const Matrix4x4<T>& inMatrix)
     {
         copy(inMatrix);
     }
 
+    /// It is common for matrices to be created on the fly specifically for
+    /// capturing the product of two matrices. This constructor defaults its
+    /// data to that product (bypasses any other setting of the array).
     template<typename T>
     Matrix4x4<T>::Matrix4x4(const Matrix4x4<T>& inLMatrix,
         const Matrix4x4<T>& inRMatrix)
@@ -140,17 +155,22 @@ namespace XPG
         multiply(inLMatrix, inRMatrix);
     }
 
+    /// The destructor has nothing to do. It is here primarily to satisfy the
+    /// sacred Rule of Three.
     template<typename T>
     Matrix4x4<T>::~Matrix4x4()
     {
     }
 
+    /// There are many instances where the programmer needs to reset the matrix
+    /// back to the identity matrix.
     template<typename T>
     void Matrix4x4<T>::loadIdentity()
     {
         memcpy(mData, mIdentity, 16 * sizeof(T));
     }
 
+    /// This is a spiritual recreation of glRotatef
     template<typename T>
     void Matrix4x4<T>::rotate(T inDegrees, T inX, T inY, T inZ)
     {
@@ -176,6 +196,9 @@ namespace XPG
         multiply(Matrix4x4<T>(mData), transform);
     }
 
+    /// Rather than deal with the mathematical nightmare involved with rotating
+    /// about an arbitrary axis, it is much simpler and faster to rotate about
+    /// X, Y, or Z. This function rotates about X axis.
     template<typename T>
     void Matrix4x4<T>::rotateX(T inDegrees)
     {
@@ -192,6 +215,9 @@ namespace XPG
         multiply(Matrix4x4<T>(mData), transform);
     }
 
+    /// Rather than deal with the mathematical nightmare involved with rotating
+    /// about an arbitrary axis, it is much simpler and faster to rotate about
+    /// X, Y, or Z. This function rotates about Y axis.
     template<typename T>
     void Matrix4x4<T>::rotateY(T inDegrees)
     {
@@ -208,6 +234,9 @@ namespace XPG
         multiply(Matrix4x4<T>(mData), transform);
     }
 
+    /// Rather than deal with the mathematical nightmare involved with rotating
+    /// about an arbitrary axis, it is much simpler and faster to rotate about
+    /// X, Y, or Z. This function rotates about Z axis.
     template<typename T>
     void Matrix4x4<T>::rotateZ(T inDegrees)
     {
@@ -224,6 +253,8 @@ namespace XPG
         multiply(Matrix4x4<T>(mData), transform);
     }
 
+    /// This is a uniform scale transformations. All three components are scaled
+    /// by the same value specified by inScale.
     template<typename T>
     void Matrix4x4<T>::scale(T inScale)
     {
@@ -236,6 +267,9 @@ namespace XPG
         multiply(Matrix4x4<T>(mData), transform);
     }
 
+    /// A common error with scaling along one axis is that it is natural to set
+    /// the other scales to zero instead of one. This function mitigates that.
+    /// It scales along the X axis only.
     template<typename T>
     void Matrix4x4<T>::scaleX(T inScale)
     {
@@ -248,6 +282,9 @@ namespace XPG
         multiply(Matrix4x4<T>(mData), transform);
     }
 
+    /// A common error with scaling along one axis is that it is natural to set
+    /// the other scales to zero instead of one. This function mitigates that.
+    /// It scales along the Y axis only.
     template<typename T>
     void Matrix4x4<T>::scaleY(T inScale)
     {
@@ -260,6 +297,9 @@ namespace XPG
         multiply(Matrix4x4<T>(mData), transform);
     }
 
+    /// A common error with scaling along one axis is that it is natural to set
+    /// the other scales to zero instead of one. This function mitigates that.
+    /// It scales along the Z axis only.
     template<typename T>
     void Matrix4x4<T>::scaleZ(T inScale)
     {
@@ -272,6 +312,8 @@ namespace XPG
         multiply(Matrix4x4<T>(mData), transform);
     }
 
+    /// The standard scale transformation can resize geometry along the X, Y,
+    /// and/or the Z axes. It functions like that of glScale.
     template<typename T>
     void Matrix4x4<T>::scale(T inX, T inY, T inZ)
     {
@@ -284,6 +326,8 @@ namespace XPG
         multiply(Matrix4x4<T>(mData), transform);
     }
 
+    /// This transformation serves as a direct offset for vertices. It functions
+    /// like that of glTranslate.
     template<typename T>
     void Matrix4x4<T>::translate(T inX, T inY, T inZ)
     {
@@ -296,6 +340,9 @@ namespace XPG
         multiply(Matrix4x4<T>(mData), transform);
     }
 
+    /// When positioning an object in the scene, there is a particular optimal
+    /// order to applying those transformations: rotate Z, rotate X, rotate Y,
+    /// translate.
     template<typename T>
     void Matrix4x4<T>::smartMove(T inRX, T inRY, T inRZ, T inTX, T inTY, T inTZ)
     {
@@ -305,6 +352,7 @@ namespace XPG
         rotateZ(inRZ);
     }
 
+    /// This is a spiritual recreation of glFrustum.
     template<typename T>
     void Matrix4x4<T>::frustum(T inLeft, T inRight, T inBottom, T inTop,
         T inNear, T inFar)
@@ -323,6 +371,8 @@ namespace XPG
         multiply(Matrix4x4<T>(mData), transform);
     }
 
+    /// This is a recreation of gluPerspective (more commonly used than
+    /// glFrustum.
     template<typename T>
     void Matrix4x4<T>::perspective(T inFieldOfView, T inRatio, T inNear,
         T inFar)
@@ -344,6 +394,8 @@ namespace XPG
         multiply(Matrix4x4<T>(mData), transform);
     }
 
+    /// This is a recreation of glOrtho. It creates a basic orthographic
+    /// projection.
     template<typename T>
     void Matrix4x4<T>::orthographic(T inLeft, T inRight, T inBottom, T inTop,
         T inNear, T inFar)
@@ -360,6 +412,13 @@ namespace XPG
         multiply(Matrix4x4<T>(mData), transform);
     }
 
+    /// This is an intelligent orthographic projection. Rather than manually
+    /// request all sides of the canonical viewing volume (as in glOrtho), this
+    /// function simply takes the aspect ratio and requested object space range.
+    /// The range is fixated along the shorter axis of the display. In other
+    /// words, in a widescreen display, the top and bottom will exactly reach
+    /// the range specified by inRange. In a tall display, the left and right
+    /// will reach that range.
     template<typename T>
     void Matrix4x4<T>::orthographic(T inRange, T inRatio)
     {
@@ -375,6 +434,8 @@ namespace XPG
         }
     }
 
+    /// This is a rudimentary assignment operator. It just makes a byte-perfect
+    /// copy of the target matrix.
     template<typename T>
     Matrix4x4<T>& Matrix4x4<T>::operator=(const Matrix4x4<T>& inMatrix)
     {
@@ -382,10 +443,17 @@ namespace XPG
         return *this;
     }
 
+    /// This function multiplies inLMatrix and inRMatrix together and stores the
+    /// result into THIS matrix. In other words, it OVERWRITES its own data with
+    /// the product of the two incoming matrices. This is done for performance
+    /// reasons as it prevents an extra temporary copy from being made.
     template<typename T>
     void Matrix4x4<T>::multiply(const Matrix4x4<T>& inLMatrix,
         const Matrix4x4<T>& inRMatrix)
     {
+        /// The actual math has been completely unrolled (out of for loops) for
+        /// performance improvements.
+
         mData[0] = (inLMatrix[0] * inRMatrix[0])
             + (inLMatrix[4] * inRMatrix[1])
             + (inLMatrix[8] * inRMatrix[2])
@@ -467,6 +535,7 @@ namespace XPG
             + (inLMatrix[15] * inRMatrix[15]);
     }
 
+    /// This finds the inverse matrix and stores it into THIS matrix.
     template<typename T>
     void Matrix4x4<T>::inverse()
     {
@@ -474,6 +543,7 @@ namespace XPG
         m.copyInverseTo(*this);
     }
 
+    /// This finds the inverse matrix and returns it as a copy.
     template<typename T>
     const Matrix4x4<T> Matrix4x4<T>::inversed() const
     {
@@ -482,6 +552,7 @@ namespace XPG
         return outMatrix;
     }
 
+    /// This finds the inverse matrix and stores it into inMatrix.
     template<typename T>
     void Matrix4x4<T>::copyInverseTo(Matrix4x4<T>& inMatrix) const
     {
@@ -685,6 +756,8 @@ namespace XPG
         inMatrix(3, 3) = r3[7];
     }
 
+    /// For easy display/debugging and/or serialization, the extraction operator
+    /// has been overloaded to allow matrices in output streams.
     template<typename T>
     std::ostream& operator<<(std::ostream& inStream,
         const Matrix4x4<T>& inMatrix)

@@ -40,26 +40,23 @@ int main(int argc, char** argv)
     XPG::Context c;
     c.create();
 
+    FancyTestModule ftm(c.details().legacyContext);
+
     if (c.details().legacyContext)
     {
         c.setWindowTitle("XPG OpenGL Legacy");
         c.setIconTitle("XPG OpenGL Legacy");
-        TestModule tm;
-        c.setKeyboardListener(&tm);
-        c.setMouseListener(&tm);
-        c.setWindowListener(&tm);
-        c.runModule(&tm);
     }
     else
     {
         c.setWindowTitle("XPG OpenGL 3");
         c.setIconTitle("XPG OpenGL 3");
-        FancyTestModule ftm;
-        c.setKeyboardListener(&ftm);
-        c.setMouseListener(&ftm);
-        c.setWindowListener(&ftm);
-        c.runModule(&ftm);
     }
+
+    c.setKeyboardListener(&ftm);
+    c.setMouseListener(&ftm);
+    c.setWindowListener(&ftm);
+    c.runModule(&ftm);
 
     c.destroy();
 
