@@ -6,11 +6,10 @@
 #include <iostream>
 #include <iomanip>
 
+#define SCT static_cast<T>
 #define PI 3.141592653589793238462643383
-#define DEG2RAD(n) ((n) * PI / 180.0)
-#define RAD2DEG(n) ((n) * 180.0 / PI)
-
-#define SCT(n) static_cast<T>(n)
+#define DEG2RAD(n) ((n) * SCT(PI) / SCT(180.0))
+#define RAD2DEG(n) ((n) * SCT(180.0) / SCT(PI))
 
 namespace XPG
 {
