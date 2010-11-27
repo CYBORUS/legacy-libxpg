@@ -49,6 +49,7 @@
 		<Unit filename="../../XPG/Module.hpp" />
 		<Unit filename="../../XPG/Mutex.hpp" />
 		<Unit filename="../../XPG/Network.hpp" />
+		<Unit filename="../../XPG/OpenGL.hpp" />
 		<Unit filename="../../XPG/OperatingSystems.hpp" />
 		<Unit filename="../../XPG/Program.hpp" />
 		<Unit filename="../../XPG/Shader.hpp" />

@@ -1,7 +1,13 @@
 #ifndef XPGH_INDEXVBO
 #define XPGH_INDEXVBO
 
-#include <GL/glew.h>
+#include "OpenGL.hpp"
+
+#ifdef XPG_OPENGL_ES
+#   define OGL_INDEX GLushort
+#else
+#   define OGL_INDEX GLuint
+#endif
 
 namespace XPG
 {
@@ -12,7 +18,7 @@ namespace XPG
             ~IndexVBO();
 
             void draw() const;
-            void loadData(GLenum inMode, GLuint inSize, const GLuint* inData,
+            void loadData(GLenum inMode, GLuint inSize, const OGL_INDEX* inData,
                 GLenum inUsage = GL_STATIC_DRAW);
             void setMode(GLenum inMode);
 

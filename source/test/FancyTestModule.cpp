@@ -2,11 +2,6 @@
 #include <XPG/Timer.hpp>
 #include <cmath>
 
-#define LDEBUG cout << "yarr -- " << __LINE__ << endl
-
-#include <iostream>
-using namespace std;
-
 FancyTestModule::FancyTestModule(bool inLegacy) : mRotate(0.0f)
 {
     mNextFrame = XPG::GetTicks();

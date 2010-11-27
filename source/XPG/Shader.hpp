@@ -1,7 +1,7 @@
 #ifndef XPGH_SHADER
 #define XPGH_SHADER
 
-#include <GL/glew.h>
+#include "OpenGL.hpp"
 
 namespace XPG
 {

@@ -1,7 +1,7 @@
 #ifndef XPGH_MODULE
 #define XPGH_MODULE
 
-#include <GL/glew.h>
+#include "OpenGL.hpp"
 #include "DataTypes.hpp"
 
 namespace XPG

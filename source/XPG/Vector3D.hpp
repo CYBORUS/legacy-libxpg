@@ -1,9 +1,16 @@
 #ifndef XPGH_VECTOR3D
 #define XPGH_VECTOR3D
 
-#include <cmath>
-#include <cstring>
-#include <iostream>
+#include "OperatingSystems.hpp"
+
+#ifdef XPG_OS_ANDROID
+#   include <math.h>
+#   include <string.h>
+#else
+#   include <cmath>
+#   include <cstring>
+#   include <iostream>
+#endif
 
 namespace XPG
 {
@@ -25,11 +32,8 @@ namespace XPG
             void normalize();
             void negate();
 
-            inline T& operator[](size_t inIndex) { return mData[inIndex]; }
-            inline T operator[](size_t inIndex) const
-            {
-                return mData[inIndex];
-            }
+            inline operator T*() { return mData; }
+            inline operator const T*() const { return mData; }
 
             inline T* array() { return mData; }
             inline const T* array() const { return mData; }
@@ -84,6 +88,7 @@ namespace XPG
         for (size_t i = 0; i < N; ++i) mData[i] *= static_cast<T>(-1);
     }
 
+#ifndef XPG_OS_ANDROID
     template<size_t N, typename T>
     std::istream& operator>>(std::istream& inStream, VectorN<N, T>& inVector)
     {
@@ -99,6 +104,7 @@ namespace XPG
         for (size_t i = 1; i < N; ++i) inStream << ' ' << inVector[i];
         return inStream;
     }
+#endif
 
     /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// /// ///
 

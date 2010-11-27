@@ -1,10 +1,17 @@
 #ifndef XPGH_MATRIX3D
 #define XPGH_MATRIX3D
 
-#include <cmath>
-#include <cstring>
-#include <iostream>
-#include <iomanip>
+#include "OperatingSystems.hpp"
+
+#ifdef XPG_OS_ANDROID
+#   include <math.h>
+#   include <string.h>
+#else
+#   include <cmath>
+#   include <cstring>
+#   include <iostream>
+#   include <iomanip>
+#endif
 
 #define SCT static_cast<T>
 #define PI 3.141592653589793238462643383
@@ -757,6 +764,7 @@ namespace XPG
 
     /// For easy display/debugging and/or serialization, the extraction operator
     /// has been overloaded to allow matrices in output streams.
+#ifndef XPG_OS_ANDROID
     template<typename T>
     std::ostream& operator<<(std::ostream& inStream,
         const Matrix4x4<T>& inMatrix)
@@ -773,6 +781,8 @@ namespace XPG
 
         return inStream;
     }
+#endif
+
 }
 
 #endif
