@@ -10,6 +10,7 @@
 #include "OperatingSystems.hpp"
 
 #if defined(XPG_OS_WINDOWS)
+#   include "win32/windows.hpp"
 #   include <winsock2.h>
     typedef long ssize_t;
     typedef int socklen_t;
