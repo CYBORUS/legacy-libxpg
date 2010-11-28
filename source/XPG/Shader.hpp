@@ -13,7 +13,8 @@ namespace XPG
             ~Shader();
 
             inline GLuint handle() const { return mHandle; }
-            void load(const char* inFile, GLenum inType);
+            void loadFromFile(const char* inFile, GLenum inType);
+            void loadFromBuffer(const char* inBuffer, GLenum inType);
             void unload();
 
         private:

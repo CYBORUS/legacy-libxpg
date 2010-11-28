@@ -1,10 +1,10 @@
 #include "../Timer.hpp"
 
 #include <sys/time.h>
-#ifdef XPGC_USE_NANOSLEEP
-#   include <ctime>
-#else
-#   include <unistd.h>
+#include <unistd.h>
+
+#ifdef XPG_OS_ANDROID
+#   include <time.h>
 #endif
 
 namespace XPG
@@ -13,30 +13,37 @@ namespace XPG
 
     void TimerStart()
     {
+#ifdef XPG_OS_ANDROID
+        timespec now;
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        mStart = static_cast<int64u>(now.tv_sec * 1000)
+            + static_cast<int64u>(now.tv_nsec / 1000000);
+#else
         timeval now;
         gettimeofday(&now, NULL);
-        mStart = (now.tv_sec * 1000) + (now.tv_usec / 1000);
+        mStart = static_cast<int64u>(now.tv_sec * 1000)
+            + static_cast<int64u>(now.tv_usec / 1000);
+#endif
     }
 
     void Idle(int32u inMilliseconds)
     {
-#ifdef XPGC_USE_NANOSLEEP
-        struct timespec req = {0};
-        time_t sec = (int)(inMilliseconds / 1000);
-        inMilliseconds = inMilliseconds - (sec * 1000);
-        req.tv_sec = sec;
-        req.tv_nsec = inMilliseconds * 1000000L;
-        while(nanosleep(&req, &req) == -1) continue;
-#else
         usleep(inMilliseconds * 1000);
-#endif
     }
 
     int64u GetTicks()
     {
+#ifdef XPG_OS_ANDROID
+        timespec now;
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        int64u current = static_cast<int64u>(now.tv_sec * 1000)
+            + static_cast<int64u>(now.tv_nsec / 1000000);
+#else
         timeval now;
         gettimeofday(&now, NULL);
-        int64u current = (now.tv_sec * 1000) + (now.tv_usec / 1000);
+        int64u current = static_cast<int64u>(now.tv_sec * 1000)
+            + static_cast<int64u>(now.tv_usec / 1000);
+#endif
         return current - mStart;
     }
 }

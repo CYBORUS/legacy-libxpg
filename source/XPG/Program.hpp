@@ -68,7 +68,6 @@ namespace XPG
             if (!mHandle)
             {
                 // TODO: report error through XPG exception
-                std::cerr << "failure on glCreateProgram\n";
                 return;
             }
         }
@@ -91,14 +90,12 @@ namespace XPG
         if (mLinked)
         {
             // TODO: report error through XPG exception
-            std::cerr << "program already linked\n";
             return;
         }
 
         if (mSize < 2 || !mHandle)
         {
             // TODO: report error through XPG exception
-            std::cerr << "cannot link program -- inadequate shaders\n";
             return;
         }
 
@@ -110,7 +107,6 @@ namespace XPG
         if (!linked)
         {
             // TODO: report error through XPG exception
-            std::cerr << "failure on glLinkProgram\n";
             return;
         }
 

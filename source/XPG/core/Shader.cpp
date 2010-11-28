@@ -1,8 +1,10 @@
 #include "../Shader.hpp"
 
-#include <iostream>
-#include <fstream>
-using namespace std;
+#ifdef XPG_OS_ANDROID
+#   include <stdio.h>
+#else
+#   include <cstdio>
+#endif
 
 namespace XPG
 {
@@ -12,15 +14,15 @@ namespace XPG
 
     Shader::Shader(const char* inFile, GLenum inType) : mHandle(0)
     {
-        load(inFile, inType);
+        loadFromFile(inFile, inType);
     }
 
     Shader::~Shader()
     {
-        if (mHandle) glDeleteShader(mHandle);
+        unload();
     }
 
-    void Shader::load(const char* inFile, GLenum inType)
+    void Shader::loadFromFile(const char* inFile, GLenum inType)
     {
         if (mHandle || !inFile) return;
 
@@ -31,14 +33,22 @@ namespace XPG
             return;
         }
 
-        mHandle = glCreateShader(inType);
+        loadFromBuffer(source, inType);
+
+        delete [] source;
+    }
+
+    void Shader::loadFromBuffer(const char* inBuffer, GLenum inType)
+    {
+        if (!mHandle) mHandle = glCreateShader(inType);
+
         if (!mHandle)
         {
             // TODO: report error
             return;
         }
 
-        glShaderSource(mHandle, 1, const_cast<const GLchar**>(&source), 0);
+        glShaderSource(mHandle, 1, const_cast<const GLchar**>(&inBuffer), 0);
         glCompileShader(mHandle);
 
         GLint compiled;
@@ -49,24 +59,46 @@ namespace XPG
             GLchar log[2048];
             GLsizei length;
             glGetShaderInfoLog(mHandle, 2048, &length, log);
-            cerr << inFile << " -- shader compiler errors --\n" << log << '\n';
-        }
+            printf("-- shader compiler errors --\n%s\n", log);
 
-        delete [] source;
+            glDeleteShader(mHandle);
+            mHandle = 0;
+        }
+    }
+
+    void Shader::unload()
+    {
+        if (mHandle) glDeleteShader(mHandle);
     }
 
     char* Shader::fileToBuffer(const char* inFile)
     {
+        FILE *f;
+        size_t length;
+        size_t r;
         char* outBuffer;
-        ifstream fin(inFile);
-        if (fin.fail()) return NULL;
-        fin.seekg(0, ios::end);
-        size_t length = fin.tellg();
-        fin.seekg(0, ios::beg);
-        outBuffer = new char[length + 1];
-        fin.read(outBuffer, length);
-        outBuffer[length] = 0;
-        fin.close();
+
+        if (!(f = fopen(inFile, "r")))
+        {
+            // TODO: report error
+            return NULL;
+        }
+
+        fseek(f, 0, SEEK_END);
+        length = ftell(f);
+
+        fseek(f, 0, SEEK_SET);
+
+        outBuffer = static_cast<char*>(malloc((length + 1) * sizeof(char)));
+        if (!outBuffer)
+        {
+            // TODO: report error
+            return NULL;
+        }
+
+        r = fread(outBuffer, sizeof(char), length, f);
+        outBuffer[length] = '\0';
+        fclose(f);
 
         return outBuffer;
     }

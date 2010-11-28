@@ -13,8 +13,8 @@ FancyTestModule::FancyTestModule(bool inLegacy) : mRotate(0.0f)
     const char* vsf = inLegacy ? "test-legacy.vs" : "test.vs";
     const char* fsf = inLegacy ? "test-legacy.fs" : "test.fs";
 
-    mVS.load(vsf, GL_VERTEX_SHADER);
-    mFS.load(fsf, GL_FRAGMENT_SHADER);
+    mVS.loadFromFile(vsf, GL_VERTEX_SHADER);
+    mFS.loadFromFile(fsf, GL_FRAGMENT_SHADER);
     mProgram.attachShader(mVS);
     mProgram.attachShader(mFS);
     mProgram.bindAttribLocation(0, "in_Position");
@@ -88,7 +88,7 @@ FancyTestModule::FancyTestModule(bool inLegacy) : mRotate(0.0f)
 
     mVBO.loadVAA(2, 3, 8, normals);
 
-    GLuint indices[36] = {
+    OGLI indices[36] = {
             0, 1, 2, 0, 2, 3, // top
             7, 6, 5, 7, 5, 4, // bottom
             1, 0, 4, 1, 4, 5, // right
