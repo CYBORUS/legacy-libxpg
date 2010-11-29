@@ -48,7 +48,7 @@ namespace XPG
         bool active;
     };
 
-    Context::Context()
+    Context::Context() : details(mDetails)
     {
         mData = new PrivateData;
         mData->active = false;
@@ -138,17 +138,17 @@ namespace XPG
 
         XMapWindow(mData->display, mData->window);
 
-        if (!mDetails.versionMajor)
+        if (!mDetails.context.vMajor)
         {
-            mDetails.versionMajor = 3;
-            mDetails.versionMinor = 3;
+            mDetails.context.vMajor = 3;
+            mDetails.context.vMinor = 3;
         }
 
         /// GL context creation
         GLint attribs[] =
         {
-            GLX_CONTEXT_MAJOR_VERSION_ARB, mDetails.versionMajor,
-            GLX_CONTEXT_MINOR_VERSION_ARB, mDetails.versionMinor,
+            GLX_CONTEXT_MAJOR_VERSION_ARB, mDetails.context.vMajor,
+            GLX_CONTEXT_MINOR_VERSION_ARB, mDetails.context.vMinor,
             GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
             0
         };
@@ -167,10 +167,6 @@ namespace XPG
             mData->context = glXCreateContext(mData->display, visualInfo, NULL,
                 True);
             mDetails.legacyContext = true;
-
-            // temporary hack; needs to find actual context version
-            mDetails.versionMajor = 2;
-            mDetails.versionMinor = 1;
         }
 
         glXMakeCurrent(mData->display, mData->window, mData->context);
@@ -179,8 +175,17 @@ namespace XPG
         if (e != GLEW_OK)
             cerr << "ERROR (GLEW) -- " << glewGetErrorString(e);
 
-        const GLubyte *s = glGetString(GL_VERSION);
-        cout << "GL version: " << s << endl;
+        const GLubyte* s = glGetString(GL_VERSION);
+        //cout << "GL version: " << s << endl;
+        mDetails.context.vMajor = s[0] - '0';
+        mDetails.context.vMinor = s[2] - '0';
+
+        if (mDetails.context.vMajor >= 2)
+        {
+            s = glGetString(GL_SHADING_LANGUAGE_VERSION);
+            mDetails.shader.vMajor = s[0] - '0';
+            mDetails.shader.vMinor = (s[2] - '0') * 10 + (s[3] - '0');
+        }
 
         if (!mDetails.legacyContext)
         {
@@ -189,9 +194,6 @@ namespace XPG
             glGetIntegerv(GL_MINOR_VERSION, glVersion + 1);
             cout << "found version ints: " << glVersion[0] << '.'
                 << glVersion[1] << endl;
-
-            mDetails.versionMajor = glVersion[0];
-            mDetails.versionMinor = glVersion[1];
         }
 
         glViewport(0, 0, mDetails.width, mDetails.height);

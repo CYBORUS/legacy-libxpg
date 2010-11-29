@@ -12,6 +12,14 @@ namespace XPG
             Context();
             ~Context();
 
+            struct Version
+            {
+                Version();
+
+                int16u vMajor;
+                int16u vMinor;
+            };
+
             struct Parameters
             {
                 Parameters();
@@ -21,14 +29,14 @@ namespace XPG
                 int32u depth;
                 bool fullScreen;
                 bool legacyContext;
-                int16u versionMajor;
-                int16u versionMinor;
+                Version context;
+                Version shader;
                 WindowEventListener* WEL;
                 MouseEventListener* MEL;
                 KeyboardEventListener* KEL;
             };
 
-            inline const Parameters& details() { return mDetails; }
+            const Parameters& details;
 
             void create(const Parameters& inDetails = Parameters());
             void destroy();

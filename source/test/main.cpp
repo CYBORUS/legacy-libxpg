@@ -40,9 +40,15 @@ int main(int argc, char** argv)
     XPG::Context c;
     c.create();
 
-    FancyTestModule ftm(c.details().legacyContext);
+    cout << "context version " << c.details.context.vMajor << '.'
+        << c.details.context.vMinor << endl;
 
-    if (c.details().legacyContext)
+    cout << "shader version " << c.details.shader.vMajor << '.'
+        << c.details.shader.vMinor << endl;
+
+    FancyTestModule ftm(c.details.legacyContext);
+
+    if (c.details.legacyContext)
     {
         c.setWindowTitle("XPG OpenGL Legacy");
         c.setIconTitle("XPG OpenGL Legacy");
