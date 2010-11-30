@@ -1,12 +1,8 @@
 #ifndef XPGH_THREAD
 #define XPGH_THREAD
 
-#include "OperatingSystems.hpp"
+#include "Platforms.hpp"
 #include "DataTypes.hpp"
-
-#ifdef XPG_OS_UNIX
-#include <pthread.h>
-#endif
 
 namespace XPG
 {
@@ -36,13 +32,14 @@ namespace XPG
             volatile bool mRunning;
             volatile bool mStop;
 
-#ifdef XPG_OS_WINDOWS
+            struct PrivateData;
+            PrivateData* mData;
+
+#ifdef XPG_PLATFORM_WINDOWS
             DWORD mID;
             HANDLE mThread;
 
             static DWORD WINAPI createThread(LPVOID inData);
-#elif defined(XPG_OS_UNIX)
-            pthread_t mThread;
 #endif
     };
 }

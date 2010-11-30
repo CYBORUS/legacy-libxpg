@@ -1,9 +1,9 @@
 #ifndef XPGH_OPENGL
 #define XPGH_OPENGL
 
-#include "OperatingSystems.hpp"
+#include "Platforms.hpp"
 
-#ifdef XPG_OS_ANDROID
+#ifdef XPG_PLATFORM_ANDROID
 #   define XPG_OPENGL_ES
 #   include <GLES2/gl2.h>
 #   include <GLES2/gl2ext.h>

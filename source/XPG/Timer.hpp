@@ -1,7 +1,7 @@
 #ifndef XPGH_TIMER
 #define XPGH_TIMER
 
-#include "OperatingSystems.hpp"
+#include "Platforms.hpp"
 #include "DataTypes.hpp"
 
 namespace XPG

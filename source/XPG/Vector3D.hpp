@@ -1,9 +1,9 @@
 #ifndef XPGH_VECTOR3D
 #define XPGH_VECTOR3D
 
-#include "OperatingSystems.hpp"
+#include "Platforms.hpp"
 
-#ifdef XPG_OS_ANDROID
+#ifdef XPG_PLATFORM_ANDROID
 #   include <math.h>
 #   include <string.h>
 #else
@@ -88,7 +88,7 @@ namespace XPG
         for (size_t i = 0; i < N; ++i) mData[i] *= static_cast<T>(-1);
     }
 
-#ifndef XPG_OS_ANDROID
+#ifndef XPG_PLATFORM_ANDROID
     template<size_t N, typename T>
     std::istream& operator>>(std::istream& inStream, VectorN<N, T>& inVector)
     {

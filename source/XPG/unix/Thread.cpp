@@ -1,5 +1,6 @@
 #include "../Thread.hpp"
 #include <cerrno>
+#include <pthread.h>
 
 namespace XPG
 {
@@ -11,12 +12,19 @@ namespace XPG
         return NULL;
     }
 
+    struct Thread::PrivateData
+    {
+        pthread_t thread;
+    };
+
     Thread::Thread() : mTask(NULL), mReady(false), mRunning(false), mStop(false)
     {
+        mData = new PrivateData;
     }
 
     Thread::~Thread()
     {
+        delete mData;
     }
 
     void Thread::start(Task* inTask)
@@ -30,7 +38,7 @@ namespace XPG
 
         mReady = true;
         mRunning = true;
-        switch (pthread_create(&mThread, NULL, createThread, this))
+        switch (pthread_create(&mData->thread, NULL, createThread, this))
         {
             case 0: break; // no error
 
@@ -57,12 +65,12 @@ namespace XPG
 
     void Thread::wait()
     {
-        switch (pthread_join(mThread, NULL))
+        switch (pthread_join(mData->thread, NULL))
         {
             case 0: break; // no error
 
-            case EINVAL: break; // mThread does not refer to a joinable thread
-            case ESRCH: break; // No thread found corresponding to mThread
+            case EINVAL: break; // mData->thread does not refer to a joinable thread
+            case ESRCH: break; // No thread found corresponding to mData->thread
             case EDEADLK: break; // A deadlock was detected.
             default: {} // something else went wrong
         }

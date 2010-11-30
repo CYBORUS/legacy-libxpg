@@ -1,10 +1,10 @@
 #ifndef XPGH_MUTEX
 #define XPGH_MUTEX
 
-#include "OperatingSystems.hpp"
+#include "Platforms.hpp"
 
-#ifdef XPG_OS_UNIX
-#include <pthread.h>
+#ifdef XPG_PLATFORM_UNIX
+#   include <pthread.h>
 #endif
 
 namespace XPG
@@ -19,9 +19,9 @@ namespace XPG
             void unlock();
 
         private:
-#ifdef XPG_OS_WINDOWS
+#ifdef XPG_PLATFORM_WINDOWS
             HANDLE mMutex;
-#elif defined(XPG_OS_UNIX)
+#elif defined(XPG_PLATFORM_UNIX)
             pthread_mutex_t mMutex;
 #endif
     };

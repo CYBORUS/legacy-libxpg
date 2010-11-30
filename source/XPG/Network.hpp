@@ -7,14 +7,14 @@
 #ifndef XPGH_NETWORK
 #define XPGH_NETWORK
 
-#include "OperatingSystems.hpp"
+#include "Platforms.hpp"
 
-#if defined(XPG_OS_WINDOWS)
+#if defined(XPG_PLATFORM_WINDOWS)
 #   include "win32/windows.hpp"
 #   include <winsock2.h>
     typedef long ssize_t;
     typedef int socklen_t;
-#elif defined(XPG_OS_UNIX)
+#elif defined(XPG_PLATFORM_UNIX)
 #   include <sys/socket.h>
 #   include <sys/types.h>
 #   include <netinet/in.h>

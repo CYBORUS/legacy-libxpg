@@ -3,7 +3,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#ifdef XPG_OS_ANDROID
+#ifdef XPG_PLATFORM_ANDROID
 #   include <time.h>
 #endif
 
@@ -13,7 +13,7 @@ namespace XPG
 
     void TimerStart()
     {
-#ifdef XPG_OS_ANDROID
+#ifdef XPG_PLATFORM_ANDROID
         timespec now;
         clock_gettime(CLOCK_MONOTONIC, &now);
         mStart = static_cast<int64u>(now.tv_sec * 1000)
@@ -33,7 +33,7 @@ namespace XPG
 
     int64u GetTicks()
     {
-#ifdef XPG_OS_ANDROID
+#ifdef XPG_PLATFORM_ANDROID
         timespec now;
         clock_gettime(CLOCK_MONOTONIC, &now);
         int64u current = static_cast<int64u>(now.tv_sec * 1000)

@@ -1,6 +1,6 @@
 #include "../Shader.hpp"
 
-#ifdef XPG_OS_ANDROID
+#ifdef XPG_PLATFORM_ANDROID
 #   include <stdio.h>
 #else
 #   include <cstdio>
