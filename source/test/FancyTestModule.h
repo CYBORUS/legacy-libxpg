@@ -11,7 +11,7 @@ class FancyTestModule : public XPG::Module, public XPG::MouseEventListener,
     public XPG::KeyboardEventListener, public XPG::WindowEventListener
 {
     public:
-        FancyTestModule(bool inLegacy);
+        FancyTestModule(int16u inMajorVersion);
         virtual ~FancyTestModule();
 
         virtual void onExit();
@@ -34,6 +34,7 @@ class FancyTestModule : public XPG::Module, public XPG::MouseEventListener,
         mat4f mNormalView;
         float mRotate;
         int64u mNextFrame;
+        bool mLegacy;
 };
 
 #endif

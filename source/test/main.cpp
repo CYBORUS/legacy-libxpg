@@ -46,7 +46,7 @@ int main(int argc, char** argv)
     cout << "shader version " << c.details.shader.vMajor << '.'
         << c.details.shader.vMinor << endl;
 
-    FancyTestModule ftm(c.details.legacyContext);
+    FancyTestModule ftm(c.details.context.vMajor);
 
     if (c.details.legacyContext)
     {
