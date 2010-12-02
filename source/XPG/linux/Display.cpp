@@ -66,9 +66,6 @@ namespace XPG
         mData->active = true;
 
         mDetails = inDetails;
-        setWindowListener(mDetails.WEL);
-        setMouseListener(mDetails.MEL);
-        setKeyboardListener(mDetails.KEL);
 
         XSetWindowAttributes winAttribs;
         GLint winmask;
@@ -217,172 +214,6 @@ namespace XPG
     void Context::swapBuffers()
     {
         glXSwapBuffers(mData->display, mData->window);
-    }
-
-    void Context::dispatchEvents()
-    {
-        while (XEventsQueued(mData->display, QueuedAfterReading))
-        {
-            XEvent event;
-            XNextEvent(mData->display, &event);
-
-            switch(event.type)
-            {
-                case ButtonPress:
-                {
-                    switch (event.xbutton.button)
-                    {
-                        case Button1: mDetails.MEL->onLeftButtonDown(); break;
-                        case Button2: mDetails.MEL->onMiddleButtonDown(); break;
-                        case Button3: mDetails.MEL->onRightButtonDown(); break;
-                        case Button4: mDetails.MEL->onWheelUp(); break;
-                        case Button5: mDetails.MEL->onWheelDown(); break;
-                        default:
-                            mDetails.MEL->onOtherButtonDown
-                                (event.xbutton.button);
-                    }
-
-                    break;
-                }
-
-                case ButtonRelease:
-                {
-                    switch (event.xbutton.button)
-                    {
-                        case Button1: mDetails.MEL->onLeftButtonUp(); break;
-                        case Button2: mDetails.MEL->onMiddleButtonUp(); break;
-                        case Button3: mDetails.MEL->onRightButtonUp(); break;
-
-                        case Button4:
-                        case Button5:
-                            // Do not report the wheel as a button release
-                            break;
-
-                        default:
-                            mDetails.MEL->onOtherButtonDown
-                                (event.xbutton.button);
-                    }
-
-                    break;
-                }
-
-                case FocusIn:
-                {
-                    //cout << "FocusIn" << endl;
-                    mDetails.WEL->onFocus();
-                    break;
-                }
-
-                case FocusOut:
-                {
-                    //cout << "FocusOut" << endl;
-                    mDetails.WEL->onBlur();
-                    break;
-                }
-
-                case EnterNotify:
-                {
-                    //cout << "mouse in" << endl;
-                    mDetails.MEL->onEnterWindow();
-                    break;
-                }
-
-                case LeaveNotify:
-                {
-                    //cout << "mouse out" << endl;
-                    mDetails.MEL->onLeaveWindow();
-                    break;
-                }
-
-                case UnmapNotify:
-                {
-                    break;
-                }
-
-                case MapNotify:
-                case ConfigureNotify:
-                {
-                    XWindowAttributes winData;
-                    XGetWindowAttributes(mData->display, mData->window,
-                        &winData);
-                    mDetails.height = winData.height;
-                    mDetails.width = winData.width;
-                    glViewport(0, 0, mDetails.width, mDetails.height);
-                    mDetails.WEL->onResize(mDetails.width, mDetails.height);
-                    break;
-                }
-
-                case ClientMessage:
-                {
-                    if (event.xclient.format == 32 &&
-                        static_cast<Atom>(event.xclient.data.l[0])
-                            == mData->wmDeleteMessage)
-                    {
-                        mDetails.WEL->onExit();
-                    }
-                    break;
-                }
-
-                case MotionNotify:
-                {
-                    mDetails.MEL->onMove(event.xmotion.x, event.xmotion.y);
-                    break;
-                }
-
-                case KeyPress:
-                {
-                    //cout << "key press -- " << event.xkey.keycode << endl;
-                    mDetails.KEL->onKeyDown(getKeyCode(event.xkey.keycode));
-                    //if (event.xkey.keycode == 9) mDetails.WEL->onExit();
-                    break;
-                }
-
-                case KeyRelease:
-                {
-                    bool isRepeat = false;
-
-                    // X11 sends both a KeyPress and a KeyRelease when repeating
-                    // a key. The code below distinguishes between a true key
-                    // release and a key repeat. If it is a key repeat, it
-                    // properly disposes of the subsequent KeyPress message.
-                    if (XEventsQueued(mData->display, QueuedAfterReading))
-                    {
-                        XEvent e;
-                        XPeekEvent(mData->display, &e);
-                        if (e.type == KeyPress
-                            && e.xkey.time == event.xkey.time
-                            && e.xkey.keycode == event.xkey.keycode)
-                        {
-                            //cout << "repeat key -- " << event.xkey.keycode
-                            //    << endl;
-                            mDetails.KEL->onKeyRepeat(
-                                getKeyCode(event.xkey.keycode));
-                            XNextEvent(mData->display, &e);
-                            isRepeat = true;
-                        }
-                    }
-
-                    if (!isRepeat)
-                    {
-                        //cout << "key release -- " << event.xkey.keycode << endl;
-                        mDetails.KEL->onKeyUp(getKeyCode(event.xkey.keycode));
-                    }
-
-                    break;
-                }
-
-                case DestroyNotify:
-                {
-                    cout << "destroy" << endl;
-                    break;
-                }
-
-                default:
-                {
-                    //cout << "no event?" << endl;
-                }
-            }
-        }
     }
 
     bool Context::getEvent(Event& inEvent)
@@ -595,12 +426,17 @@ namespace XPG
     {
         if (!mData->active || !inModule) return;
 
-        mDetails.WEL->onResize(mDetails.width, mDetails.height);
+        Event event;
+        event.type = Event::WINDOW;
+        event.window.event = WindowEvent::RESIZE;
+        event.window.width = mDetails.width;
+        event.window.height = mDetails.height;
+        inModule->handleEvent(event);
         inModule->startRunning();
 
         while (inModule->isRunning())
         {
-            dispatchEvents();
+            while (getEvent(event)) inModule->handleEvent(event);
             inModule->onDisplay();
             swapBuffers();
             Idle(1);

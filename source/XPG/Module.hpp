@@ -3,6 +3,7 @@
 
 #include "OpenGL.hpp"
 #include "DataTypes.hpp"
+#include "Event.hpp"
 
 namespace XPG
 {
@@ -17,6 +18,7 @@ namespace XPG
             inline void stopRunning() { mRunning = false; }
 
             virtual void onDisplay() = 0;
+            virtual void handleEvent(const Event& inEvent) = 0;
 
         private:
             bool mRunning;

@@ -4,20 +4,20 @@
 #include <XPG/ClusterVBO.hpp>
 #include <XPG/IndexVBO.hpp>
 #include <XPG/Module.hpp>
-#include <XPG/Event.hpp>
 #include <XPG/Program.hpp>
 
-class FancyTestModule : public XPG::Module, public XPG::MouseEventListener,
-    public XPG::KeyboardEventListener, public XPG::WindowEventListener
+class FancyTestModule : public XPG::Module
 {
     public:
         FancyTestModule(int16u inMajorVersion);
         virtual ~FancyTestModule();
 
-        virtual void onExit();
+        void onExit();
+        void onKeyDown(XPG::Key::Code inKey);
+        void onResize(int32u inWidth, int32u inHeight);
+
+        virtual void handleEvent(const XPG::Event& inEvent);
         virtual void onDisplay();
-        virtual void onKeyDown(XPG::Key::Code inKey);
-        virtual void onResize(int32u inWidth, int32u inHeight);
 
     private:
         XPG::Program<2> mProgram;
