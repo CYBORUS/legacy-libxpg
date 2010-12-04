@@ -14,6 +14,7 @@ class FancyTestModule : public XPG::Module
 
         void onExit();
         void onKeyDown(XPG::Key::Code inKey);
+        void onMouseMove(int32u inX, int32u inY);
         void onResize(int32u inWidth, int32u inHeight);
 
         virtual void handleEvent(const XPG::Event& inEvent);
@@ -32,7 +33,12 @@ class FancyTestModule : public XPG::Module
         mat4f mProjection;
         mat4f mModelView;
         mat4f mNormalView;
+        float mRange;
+        float mRatio;
         float mRotate;
+        int32u mWidth;
+        int32u mHeight;
+        int32u mPixelRange;
         int64u mNextFrame;
         bool mLegacy;
 };

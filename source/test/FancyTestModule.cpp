@@ -1,6 +1,15 @@
 #include "FancyTestModule.h"
 #include <XPG/Timer.hpp>
 
+#ifndef XPG_PLATFORM_ANDROID
+#   include <iostream>
+    using namespace std;
+#endif
+
+#define FOV 30.0f
+#define NCC 1.0f
+#define FCC 100.0f
+
 GLchar VSSource[] =
     "uniform mat4 MVPM;\n"
     "uniform mat4 MVM;\n"
@@ -202,9 +211,13 @@ void FancyTestModule::onKeyDown(XPG::Key::Code inKey)
 
 void FancyTestModule::onResize(int32u inWidth, int32u inHeight)
 {
-    float ratio = static_cast<float>(inWidth) / static_cast<float>(inHeight);
+    mWidth = inWidth;
+    mHeight = inHeight;
+    mRatio = static_cast<float>(inWidth) / static_cast<float>(inHeight);
     mProjection.loadIdentity();
-    mProjection.perspective(30.0f, ratio, 1.0f, 100.0f);
+    mProjection.perspective(FOV, mRatio, NCC, FCC, true);
+    mRange = NCC * tan(FOV * M_PI / 360.0f);
+    mPixelRange = (inWidth > inHeight ? inHeight / 2 : inWidth / 2);
 
 #ifndef XPG_PLATFORM_ANDROID
     if (mLegacy)
@@ -261,6 +274,24 @@ void FancyTestModule::onDisplay()
     }
 }
 
+void FancyTestModule::onMouseMove(int32u inX, int32u inY)
+{
+#ifndef XPG_PLATFORM_ANDROID
+    //cout << inX << ' ' << inY << endl;
+    int32s x = inX;
+    int32s w = mWidth / 2;
+    x -= w;
+    float v = mRange * static_cast<float>(x) / static_cast<float>(mPixelRange);
+    //cout << v;
+
+    int32s y = inY;
+    int32s h = mHeight / 2;
+    y -= h;
+    v = -mRange * static_cast<float>(y) / static_cast<float>(mPixelRange);
+    //cout << ' ' << v << endl;
+#endif
+}
+
 void FancyTestModule::handleEvent(const XPG::Event& inEvent)
 {
     switch (inEvent.type)
@@ -293,6 +324,12 @@ void FancyTestModule::handleEvent(const XPG::Event& inEvent)
         case XPG::Event::KEYBOARD:
         {
             onKeyDown(inEvent.keyboard.key);
+            break;
+        }
+
+        case XPG::Event::MOUSE:
+        {
+            onMouseMove(inEvent.mouse.x, inEvent.mouse.y);
             break;
         }
 

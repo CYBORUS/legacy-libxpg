@@ -14,9 +14,8 @@
 #endif
 
 #define SCT static_cast<T>
-#define PI 3.141592653589793238462643383
-#define DEG2RAD(n) ((n) * SCT(PI) / SCT(180.0))
-#define RAD2DEG(n) ((n) * SCT(180.0) / SCT(PI))
+#define DEG2RAD(n) ((n) * SCT(M_PI) / SCT(180))
+#define RAD2DEG(n) ((n) * SCT(180) / SCT(M_PI))
 
 namespace XPG
 {
@@ -48,7 +47,8 @@ namespace XPG
             /// projection
             void frustum(T inLeft, T inRight, T inBottom, T inTop, T inNear,
                 T inFar);
-            void perspective(T inFieldOfView, T inRatio, T inNear, T inFar);
+            void perspective(T inFieldOfView, T inRatio, T inNear, T inFar,
+                bool inSmartAdjustment = false);
             void orthographic(T inLeft, T inRight, T inBottom, T inTop,
                 T inNear, T inFar);
             void orthographic(T inRange, T inRatio);
@@ -378,14 +378,16 @@ namespace XPG
     }
 
     /// This is a recreation of gluPerspective (more commonly used than
-    /// glFrustum.
+    /// glFrustum).
     template<typename T>
     void Matrix4x4<T>::perspective(T inFieldOfView, T inRatio, T inNear,
-        T inFar)
+        T inFar, bool inSmartAdjustment)
     {
         /// adaptation of gluPerspective
         /// http://www.opengl.org/sdk/docs/man/xhtml/gluPerspective.xml
         T r = DEG2RAD(inFieldOfView);
+        if (inSmartAdjustment && inRatio < SCT(1))
+            r = SCT(2) * atan(tan(r / SCT(2)) / inRatio);
         T f = SCT(1) / tan(r / SCT(2));
 
         Matrix4x4<T> transform;
