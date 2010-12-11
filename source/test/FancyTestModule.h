@@ -6,6 +6,8 @@
 #include <XPG/Module.hpp>
 #include <XPG/Program.hpp>
 
+#include "TSphere.h"
+
 class FancyTestModule : public XPG::Module
 {
     public:
@@ -27,6 +29,7 @@ class FancyTestModule : public XPG::Module
         XPG::ClusterVBO<3> mVBO;
         XPG::IndexVBO mIVBO;
 
+        TSphere mTS;
         GLint mUniMVPM;
         GLint mUniMVM;
         GLint mUniNM;

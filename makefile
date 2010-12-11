@@ -1,6 +1,6 @@
 IFLAGS=-Isource -Isource/XPG/glew
 
-test-xpg: main.o FancyTestModule.o Display.o DisplayBase.o Event.o IndexVBO.o Module.o Shader.o Surface.o Timer.o
+test-xpg: main.o FancyTestModule.o TSphere.o Display.o DisplayBase.o Event.o IndexVBO.o Module.o Shader.o Surface.o Timer.o
 	g++ $(IFLAGS) -o test-xpg -lGL -lX11 *.o
 
 main.o: source/test/main.cpp source/test/FancyTestModule.h source/XPG/Display.hpp
@@ -8,6 +8,9 @@ main.o: source/test/main.cpp source/test/FancyTestModule.h source/XPG/Display.hp
 
 FancyTestModule.o: source/test/FancyTestModule.cpp source/test/FancyTestModule.h source/XPG/Timer.hpp source/XPG/ClusterVBO.hpp source/XPG/IndexVBO.hpp source/XPG/Module.hpp source/XPG/Program.hpp
 	g++ $(IFLAGS) -c source/test/FancyTestModule.cpp
+
+TSphere.o: source/test/TSphere.cpp source/test/TSphere.h source/XPG/OpenGL.hpp
+	g++ $(IFLAGS) -c source/test/TSphere.cpp
 
 glew.o: source/XPG/glew/glew.c source/XPG/glew/GL/glew.h source/XPG/glew/GL/glxew.h source/XPG/glew/GL/wglew.h
 	gcc $(IFLAGS) -c source/XPG/glew/glew.c

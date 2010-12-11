@@ -116,7 +116,7 @@ GLfloat normals[24] = {
 	-a, a, -a,
 	};
 
-FancyTestModule::FancyTestModule(int16u inMajorVersion) : mRotate(0.0f)
+FancyTestModule::FancyTestModule(int16u inMajorVersion) : mRotate(0.0f), mTS(1)
 {
     mNextFrame = XPG::GetTicks();
     glEnable(GL_DEPTH_TEST);
@@ -252,9 +252,10 @@ void FancyTestModule::onDisplay()
     	glEnableClientState(GL_VERTEX_ARRAY);
     	glEnableClientState(GL_COLOR_ARRAY);
 
-    	glVertexPointer(3, GL_FLOAT, 0, points);
-    	glColorPointer(4, GL_FLOAT, 0, colors);
-		glDrawElements(GL_TRIANGLES, 36, OGLIT, indices);
+    	glVertexPointer(3, GL_FLOAT, 0, mTS.vertices());
+    	glColorPointer(4, GL_FLOAT, 0, mTS.colors());
+		//glDrawElements(GL_TRIANGLES, 36, OGLIT, indices);
+		glDrawArrays(GL_TRIANGLES, 0, mTS.size());
 
     	glDisableClientState(GL_COLOR_ARRAY);
     	glDisableClientState(GL_VERTEX_ARRAY);
