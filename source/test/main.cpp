@@ -25,16 +25,11 @@ int main(int argc, char** argv)
     {
         FancyTestModule ftm(c.details.context.vMajor);
 
-        if (c.details.legacyContext)
-        {
-            c.setWindowTitle("XPG OpenGL Legacy");
-            c.setIconTitle("XPG OpenGL Legacy");
-        }
-        else
-        {
-            c.setWindowTitle("XPG OpenGL 3");
-            c.setIconTitle("XPG OpenGL 3");
-        }
+        const char* title = c.details.legacyContext ?
+            "XPG OpenGL Legacy" : "XPG OpenGL 3";
+
+        c.setWindowTitle(title);
+        c.setIconTitle(title);
 
         c.runModule(&ftm);
 
