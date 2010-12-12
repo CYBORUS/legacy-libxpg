@@ -52,14 +52,15 @@
 		<Unit filename="..\..\XPG\Module.hpp" />
 		<Unit filename="..\..\XPG\Mutex.hpp" />
 		<Unit filename="..\..\XPG\Network.hpp" />
-		<Unit filename="..\..\XPG\OperatingSystems.hpp" />
+		<Unit filename="..\..\XPG\OpenGL.hpp" />
+		<Unit filename="..\..\XPG\Platforms.hpp" />
 		<Unit filename="..\..\XPG\Program.hpp" />
 		<Unit filename="..\..\XPG\Shader.hpp" />
 		<Unit filename="..\..\XPG\Surface.hpp" />
 		<Unit filename="..\..\XPG\Thread.hpp" />
 		<Unit filename="..\..\XPG\Timer.hpp" />
 		<Unit filename="..\..\XPG\Vector3D.hpp" />
-		<Unit filename="..\..\XPG\core\Display.cpp" />
+		<Unit filename="..\..\XPG\core\DisplayBase.cpp" />
 		<Unit filename="..\..\XPG\core\Event.cpp" />
 		<Unit filename="..\..\XPG\core\IndexVBO.cpp" />
 		<Unit filename="..\..\XPG\core\Module.cpp" />
@@ -73,10 +74,11 @@
 		<Unit filename="..\..\XPG\win32\Network.cpp" />
 		<Unit filename="..\..\XPG\win32\Thread.cpp" />
 		<Unit filename="..\..\XPG\win32\Timer.cpp" />
+		<Unit filename="..\..\XPG\win32\windows.hpp" />
 		<Unit filename="..\..\test\FancyTestModule.cpp" />
 		<Unit filename="..\..\test\FancyTestModule.h" />
-		<Unit filename="..\..\test\TestModule.cpp" />
-		<Unit filename="..\..\test\TestModule.h" />
+		<Unit filename="..\..\test\TSphere.cpp" />
+		<Unit filename="..\..\test\TSphere.h" />
 		<Unit filename="..\..\test\main.cpp" />
 		<Extensions>
 			<code_completion />

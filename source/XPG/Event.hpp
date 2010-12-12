@@ -42,7 +42,8 @@ namespace XPG
 
     struct WindowEvent
     {
-        enum { FOCUS, BLUR, MINIMIZE, MAXIMIZE, RESTORE, RESIZE, EXIT } event;
+        enum { FOCUS, BLUR, RESIZE, EXIT } event;
+        enum { MINIMIZE, MAXIMIZE, RESTORE } resize;
         int32u width;
         int32u height;
     };

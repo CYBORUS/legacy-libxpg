@@ -1,6 +1,7 @@
 #include "../Display.hpp"
-#include "../OperatingSystems.hpp"
+#include "../Platforms.hpp"
 #include "../Timer.hpp"
+#include "windows.hpp"
 
 #include <GL/glew.h>
 #include <GL/wglew.h>
@@ -12,11 +13,11 @@ namespace XPG
 {
     Key::Code convertKeyCode(unsigned int inData);
     LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lparam);
-    static Context* activeContext;
-    static WindowEventListener* activeWEL;
+
+    /// evil globals (working on a way to avoid needing these)
     static int32u* activeWidth;
     static int32u* activeHeight;
-    static Module* activeModule;
+    static Event* activeEvent = NULL;
 
     struct Context::PrivateData
     {
@@ -29,7 +30,7 @@ namespace XPG
         Module* module;
     };
 
-    Context::Context()
+    Context::Context() : details(mDetails)
     {
         mData = new PrivateData;
         mData->active = false;
@@ -48,9 +49,6 @@ namespace XPG
 
         mData->active = true;
         mDetails = inDetails;
-        setWindowListener(mDetails.WEL);
-        setMouseListener(mDetails.MEL);
-        setKeyboardListener(mDetails.KEL);
 
         mData->hInstance = GetModuleHandle(NULL);
         WNDCLASS windowClass;
@@ -74,8 +72,8 @@ namespace XPG
         }
 
         mData->hWnd = CreateWindowEx(dwExStyle, mData->title, mData->title,
-            WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, mDetails.width, mDetails.height, NULL, NULL,
-            mData->hInstance, NULL);
+            WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, mDetails.width,
+            mDetails.height, NULL, NULL, mData->hInstance, NULL);
 
         mData->hdc = GetDC(mData->hWnd);
 
@@ -118,38 +116,47 @@ namespace XPG
             return;
         }
 
+        if (!mDetails.context.vMajor)
+        {
+            mDetails.context.vMajor = 3;
+            mDetails.context.vMinor = 3;
+        }
+
         int attributes[] = {
-            WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-            WGL_CONTEXT_MINOR_VERSION_ARB, 0,
+            WGL_CONTEXT_MAJOR_VERSION_ARB, mDetails.context.vMajor,
+            WGL_CONTEXT_MINOR_VERSION_ARB, mDetails.context.vMinor,
             //WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
             0
         };
 
-        if (wglewIsSupported("WGL_ARB_create_context") == 1)
+        if (!mDetails.legacyContext && wglewIsSupported("WGL_ARB_create_context") == 1)
         {
             mData->hrc = wglCreateContextAttribsARB(mData->hdc, NULL,
                 attributes);
             wglMakeCurrent(NULL, NULL);
             wglDeleteContext(tempOpenGLContext);
             wglMakeCurrent(mData->hdc, mData->hrc);
-            cerr << "replacing context with OGL 3" << endl;
         }
         else
         {
-            cerr << "resorting to legacy context" << endl;
             mData->hrc = tempOpenGLContext;
+            mDetails.legacyContext = true;
         }
-
-        int glVersion[2] = {-1, -1};
-        glGetIntegerv(GL_MAJOR_VERSION, glVersion);
-        glGetIntegerv(GL_MINOR_VERSION, glVersion + 1);
-
-        cerr << "Using OpenGL: " << glVersion[0] << "." << glVersion[1] << endl;
 
         ShowWindow(mData->hWnd, SW_SHOW);
         UpdateWindow(mData->hWnd);
 
-        glViewport(0, 0, mDetails.width, mDetails.height);
+        const GLubyte* s = glGetString(GL_VERSION);
+        //cout << "GL version: " << s << endl;
+        mDetails.context.vMajor = s[0] - '0';
+        mDetails.context.vMinor = s[2] - '0';
+
+        if (mDetails.context.vMajor >= 2)
+        {
+            s = glGetString(GL_SHADING_LANGUAGE_VERSION);
+            mDetails.shader.vMajor = s[0] - '0';
+            mDetails.shader.vMinor = (s[2] - '0') * 10 + (s[3] - '0');
+        }
     }
 
     void Context::destroy()
@@ -173,11 +180,11 @@ namespace XPG
         SwapBuffers(mData->hdc);
     }
 
-    void Context::dispatchEvents()
+    bool Context::getEvent(Event& inEvent)
     {
         //cout << "dispatchEvents" << endl;
         MSG msg;
-        if (!PeekMessage(&msg, mData->hWnd, 0, 0, PM_REMOVE)) return;
+        if (!PeekMessage(&msg, mData->hWnd, 0, 0, PM_REMOVE)) return false;
         WPARAM wparam = msg.wParam;
         LPARAM lparam = msg.lParam;
 
@@ -186,56 +193,72 @@ namespace XPG
             case WM_MOUSEMOVE:
             {
                 // http://msdn.microsoft.com/en-us/library/ms632654%28v=VS.85%29.aspx
-                mDetails.MEL->onMove(GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam));
+                inEvent.type = Event::MOUSE;
+                inEvent.mouse.event = MouseEvent::MOTION;
+                inEvent.mouse.x = GET_X_LPARAM(lparam);
+                inEvent.mouse.y = GET_Y_LPARAM(lparam);
                 break;
             }
 
             case WM_MBUTTONDOWN:
             {
                 //cout << "mouse MButton down" << endl;
-                mDetails.MEL->onMiddleButtonDown();
+                inEvent.type = Event::MOUSE;
+                inEvent.mouse.event = MouseEvent::BUTTON_DOWN;
+                inEvent.mouse.button = MouseEvent::MIDDLE_BUTTON;
                 break;
             }
 
             case WM_MBUTTONUP:
             {
                 //cout << "mouse MButton up" << endl;
-                mDetails.MEL->onMiddleButtonUp();
+                inEvent.type = Event::MOUSE;
+                inEvent.mouse.event = MouseEvent::BUTTON_UP;
+                inEvent.mouse.button = MouseEvent::MIDDLE_BUTTON;
                 break;
             }
 
             case WM_LBUTTONDOWN:
             {
                 //cout << "mouse LButton down" << endl;
-                mDetails.MEL->onLeftButtonDown();
+                inEvent.type = Event::MOUSE;
+                inEvent.mouse.event = MouseEvent::BUTTON_DOWN;
+                inEvent.mouse.button = MouseEvent::LEFT_BUTTON;
                 break;
             }
 
             case WM_LBUTTONUP:
             {
                 //cout << "mouse LButton up" << endl;
-                mDetails.MEL->onLeftButtonUp();
+                inEvent.type = Event::MOUSE;
+                inEvent.mouse.event = MouseEvent::BUTTON_UP;
+                inEvent.mouse.button = MouseEvent::LEFT_BUTTON;
                 break;
             }
 
             case WM_RBUTTONDOWN:
             {
                 //cout << "mouse RButton down" << endl;
-                mDetails.MEL->onRightButtonDown();
+                inEvent.type = Event::MOUSE;
+                inEvent.mouse.event = MouseEvent::BUTTON_DOWN;
+                inEvent.mouse.button = MouseEvent::RIGHT_BUTTON;
                 break;
             }
 
             case WM_RBUTTONUP:
             {
                 //cout << "mouse RButton up" << endl;
-                mDetails.MEL->onRightButtonUp();
+                inEvent.type = Event::MOUSE;
+                inEvent.mouse.event = MouseEvent::BUTTON_UP;
+                inEvent.mouse.button = MouseEvent::RIGHT_BUTTON;
                 break;
             }
 
             case WM_MOUSELEAVE:
             {
                 //cout << "mouse leave" << endl;
-                mDetails.MEL->onLeaveWindow();
+                inEvent.type = Event::MOUSE;
+                inEvent.mouse.event = MouseEvent::LEAVE_WINDOW;
                 break;
             }
 
@@ -244,11 +267,12 @@ namespace XPG
                 //http://msdn.microsoft.com/en-us/library/ms645617%28v=VS.85%29.aspx
                 //cout << "mouse wheel: " << GET_WHEEL_DELTA_WPARAM(wparam)
                 //    << endl;
+                inEvent.type = Event::MOUSE;
                 short w = GET_WHEEL_DELTA_WPARAM(wparam);
                 if (w > 0)
-                    mDetails.MEL->onWheelUp();
+                    inEvent.mouse.event = MouseEvent::WHEEL_UP;
                 else if (w < 0)
-                    mDetails.MEL->onWheelDown();
+                    inEvent.mouse.event = MouseEvent::WHEEL_DOWN;
                 break;
             }
 
@@ -261,7 +285,9 @@ namespace XPG
 
                 unsigned int key = (unsigned int)wparam;
                 cout << "key down -- " << key << endl;
-                if (key == 27) mData->module->stopRunning();
+                inEvent.type = Event::KEYBOARD;
+                inEvent.keyboard.event = KeyboardEvent::PRESS;
+                inEvent.keyboard.key = convertKeyCode(key);
                 break;
             }
 
@@ -269,6 +295,9 @@ namespace XPG
             {
                 unsigned int key = (unsigned int)wparam;
                 cout << "key up -- " << key << endl;
+                inEvent.type = Event::KEYBOARD;
+                inEvent.keyboard.event = KeyboardEvent::RELEASE;
+                inEvent.keyboard.key = convertKeyCode(key);
                 break;
             }
 
@@ -276,41 +305,52 @@ namespace XPG
             case WM_SETFOCUS:
             {
                 //cout << "focus" << endl;
-                mDetails.WEL->onFocus();
+                inEvent.type = Event::WINDOW;
+                inEvent.window.event = WindowEvent::FOCUS;
                 break;
             }
 
             case WM_KILLFOCUS:
             {
                 //cout << "blur" << endl;
-                mDetails.WEL->onBlur();
+                inEvent.type = Event::WINDOW;
+                inEvent.window.event = WindowEvent::BLUR;
                 break;
             }
 
             default:
             {
+                activeEvent = &inEvent;
+                activeWidth = &mDetails.width;
+                activeHeight = &mDetails.height;
+
                 TranslateMessage(&msg);
                 DispatchMessage(&msg);
+
+                activeEvent = NULL;
             }
         }
+
+        return true;
     }
 
     void Context::runModule(Module* inModule)
     {
         if (!mDetails.width || !inModule) return;
 
-        mData->module = inModule;
-        activeModule = inModule;
-        activeContext = this;
-        activeWEL = mDetails.WEL;
-        activeWidth = &mDetails.width;
-        activeHeight = &mDetails.height;
-        mDetails.WEL->onResize(mDetails.width, mDetails.height);
+        //mData->module = inModule;
+
+        Event event;
+        event.type = Event::WINDOW;
+        event.window.event = WindowEvent::RESIZE;
+        event.window.width = mDetails.width;
+        event.window.height = mDetails.height;
+        inModule->handleEvent(event);
         inModule->startRunning();
 
         while (inModule->isRunning())
         {
-            dispatchEvents();
+            while (getEvent(event)) inModule->handleEvent(event);
             inModule->onDisplay();
             swapBuffers();
             Idle(1);
@@ -378,6 +418,7 @@ namespace XPG
             case 56: return Key::TR8;
             case 57: return Key::TR9;
 
+            case 27: return Key::ESCAPE;
             case 192: return Key::BACK_QUOTE;
             case 189: return Key::MINUS;
             case 187: return Key::EQUALS;
@@ -409,18 +450,24 @@ namespace XPG
         }
     }
 
+    /// Only handles events that cannot be caught by PeekMessage. This
+    /// generally covers window events.
     LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lparam)
     {
+        if (!activeEvent)
+            return DefWindowProc(hWnd, msg, wparam, lparam);
+
         switch (msg)
         {
             case WM_SIZE:
             {
                 *activeWidth = LOWORD(lparam);
                 *activeHeight = HIWORD(lparam);
-                glViewport(0, 0, *activeWidth, *activeHeight);
-                activeWEL->onResize(*activeWidth, *activeHeight);
-                activeModule->onDisplay();
-                activeContext->swapBuffers();
+
+                activeEvent->type = Event::WINDOW;
+                activeEvent->window.event = WindowEvent::RESIZE;
+                activeEvent->window.width = *activeWidth;
+                activeEvent->window.height = *activeHeight;
 
                 // http://msdn.microsoft.com/en-us/library/ms632646%28v=VS.85%29.aspx
                 switch (wparam)
@@ -428,18 +475,20 @@ namespace XPG
                     case SIZE_MAXIMIZED:
                     {
                         cout << "maximize" << endl;
+                        activeEvent->window.resize = WindowEvent::MAXIMIZE;
                         break;
                     }
 
                     case SIZE_MINIMIZED:
                     {
                         cout << "minimize" << endl;
+                        activeEvent->window.resize = WindowEvent::MINIMIZE;
                         break;
                     }
 
                     case SIZE_RESTORED:
                     {
-                        cout << "restore" << endl;
+                        //cout << "restore" << endl;
                         break;
                     }
 
@@ -458,7 +507,8 @@ namespace XPG
 
             case WM_CLOSE:
             {
-                activeWEL->onExit();
+                activeEvent->type = Event::WINDOW;
+                activeEvent->window.event = WindowEvent::EXIT;
                 break;
             }
 

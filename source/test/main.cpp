@@ -8,8 +8,13 @@ using namespace std;
 /// run test code
 int main(int argc, char** argv)
 {
+    XPG::Context::Parameters p;
+    //p.legacyContext = true;
+    p.context.vMajor = 3;
+    p.context.vMinor = 2;
+
     XPG::Context c;
-    c.create();
+    c.create(p);
 
     cout << "context version " << c.details.context.vMajor << '.'
         << c.details.context.vMinor << endl;

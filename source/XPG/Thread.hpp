@@ -1,7 +1,6 @@
 #ifndef XPGH_THREAD
 #define XPGH_THREAD
 
-#include "Platforms.hpp"
 #include "DataTypes.hpp"
 
 namespace XPG
@@ -34,13 +33,6 @@ namespace XPG
 
             struct PrivateData;
             PrivateData* mData;
-
-#ifdef XPG_PLATFORM_WINDOWS
-            DWORD mID;
-            HANDLE mThread;
-
-            static DWORD WINAPI createThread(LPVOID inData);
-#endif
     };
 }
 

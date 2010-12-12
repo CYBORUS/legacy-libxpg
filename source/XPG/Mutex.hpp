@@ -5,6 +5,8 @@
 
 #ifdef XPG_PLATFORM_UNIX
 #   include <pthread.h>
+#elif defined(XPG_PLATFORM_WINDOWS)
+#   include "win32/windows.hpp"
 #endif
 
 namespace XPG
