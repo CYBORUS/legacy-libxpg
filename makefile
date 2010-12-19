@@ -1,4 +1,4 @@
-IFLAGS=-Isource -Isource/XPG/glew
+IFLAGS=-Isource -Isource/glew
 
 test-xpg: main.o FancyTestModule.o TSphere.o Display.o DisplayBase.o Event.o IndexVBO.o Module.o Shader.o Surface.o Timer.o
 	g++ $(IFLAGS) -o test-xpg -lGL -lX11 *.o
@@ -12,13 +12,13 @@ FancyTestModule.o: source/test/FancyTestModule.cpp source/test/FancyTestModule.h
 TSphere.o: source/test/TSphere.cpp source/test/TSphere.h source/XPG/OpenGL.hpp
 	g++ $(IFLAGS) -c source/test/TSphere.cpp
 
-glew.o: source/XPG/glew/glew.c source/XPG/glew/GL/glew.h source/XPG/glew/GL/glxew.h source/XPG/glew/GL/wglew.h
-	gcc $(IFLAGS) -c source/XPG/glew/glew.c
+glew.o: source/glew/glew.c source/glew/GL/glew.h source/glew/GL/glxew.h source/glew/GL/wglew.h
+	gcc $(IFLAGS) -c source/glew/glew.c
 
-Display.o: source/XPG/linux/Display.cpp source/XPG/Display.hpp source/XPG/Event.hpp source/XPG/Module.hpp source/XPG/Timer.hpp source/XPG/glew/GL/glew.h source/XPG/glew/GL/glxew.h glew.o
+Display.o: source/XPG/linux/Display.cpp source/XPG/Display.hpp source/XPG/Event.hpp source/XPG/Module.hpp source/XPG/Timer.hpp source/glew/GL/glew.h source/glew/GL/glxew.h glew.o
 	g++ $(IFLAGS) -c source/XPG/linux/Display.cpp
 
-DisplayBase.o: source/XPG/core/DisplayBase.cpp source/XPG/Display.hpp source/XPG/Event.hpp source/XPG/Module.hpp source/XPG/Timer.hpp source/XPG/glew/GL/glew.h source/XPG/glew/GL/glxew.h glew.o
+DisplayBase.o: source/XPG/core/DisplayBase.cpp source/XPG/Display.hpp source/XPG/Event.hpp source/XPG/Module.hpp source/XPG/Timer.hpp source/glew/GL/glew.h source/glew/GL/glxew.h glew.o
 	g++ $(IFLAGS) -c source/XPG/core/DisplayBase.cpp
 
 Event.o: source/XPG/core/Event.cpp source/XPG/Event.hpp source/XPG/DataTypes.hpp
@@ -38,3 +38,6 @@ Surface.o: source/XPG/core/Surface.cpp source/XPG/Surface.hpp source/XPG/DataTyp
 
 Timer.o: source/XPG/unix/Timer.cpp source/XPG/Timer.hpp
 	g++ $(IFLAGS) -c source/XPG/unix/Timer.cpp
+
+clean: main.o
+	rm *.o
