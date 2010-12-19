@@ -116,7 +116,7 @@ GLfloat normals[24] = {
     -a, a, -a,
     };
 
-FancyTestModule::FancyTestModule(int16u inMajorVersion) : mRotate(0.0f), mTS(1)
+FancyTestModule::FancyTestModule(int16u inMajorVersion) : mTS(1), mRotate(0.0f)
 {
     mNextFrame = XPG::GetTicks();
     glEnable(GL_DEPTH_TEST);
