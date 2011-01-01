@@ -3,8 +3,8 @@
 #include <cassert>
 #include <cmath>
 
-#define IX 0.525731112119133606
-#define IZ 0.850650808352039932
+#define IX 0.525731112119133606f
+#define IZ 0.850650808352039932f
 
 const GLfloat TSVD[12][3] =
     {{-IX, 0.0f, IZ}, {IX, 0.0f, IZ}, {-IX, 0.0f, -IZ}, {IX, 0.0f, -IZ},

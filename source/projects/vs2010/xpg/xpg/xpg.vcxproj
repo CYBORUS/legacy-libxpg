@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{D8120A42-0B01-4E06-B8A9-A17727B03691}</ProjectGuid>
+    <RootNamespace>xpg</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>../../../..;../../../../glew;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>../../../..;../../../../glew;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>GLEW_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>ws2_32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>GLEW_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>ws2_32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\glew\glew.c" />
+    <ClCompile Include="..\..\..\..\test\FancyTestModule.cpp" />
+    <ClCompile Include="..\..\..\..\test\main.cpp" />
+    <ClCompile Include="..\..\..\..\test\TSphere.cpp" />
+    <ClCompile Include="..\..\..\..\XPG\core\DisplayBase.cpp" />
+    <ClCompile Include="..\..\..\..\XPG\core\Event.cpp" />
+    <ClCompile Include="..\..\..\..\XPG\core\IndexVBO.cpp" />
+    <ClCompile Include="..\..\..\..\XPG\core\Module.cpp" />
+    <ClCompile Include="..\..\..\..\XPG\core\Shader.cpp" />
+    <ClCompile Include="..\..\..\..\XPG\core\Surface.cpp" />
+    <ClCompile Include="..\..\..\..\XPG\win32\Display.cpp" />
+    <ClCompile Include="..\..\..\..\XPG\win32\Mutex.cpp" />
+    <ClCompile Include="..\..\..\..\XPG\win32\Network.cpp" />
+    <ClCompile Include="..\..\..\..\XPG\win32\Thread.cpp" />
+    <ClCompile Include="..\..\..\..\XPG\win32\Timer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\glew\GL\glew.h" />
+    <ClInclude Include="..\..\..\..\glew\GL\wglew.h" />
+    <ClInclude Include="..\..\..\..\test\FancyTestModule.h" />
+    <ClInclude Include="..\..\..\..\test\TSphere.h" />
+    <ClInclude Include="..\..\..\..\XPG\ClusterVBO.hpp" />
+    <ClInclude Include="..\..\..\..\XPG\DataTypes.hpp" />
+    <ClInclude Include="..\..\..\..\XPG\Display.hpp" />
+    <ClInclude Include="..\..\..\..\XPG\Event.hpp" />
+    <ClInclude Include="..\..\..\..\XPG\IndexVBO.hpp" />
+    <ClInclude Include="..\..\..\..\XPG\Matrix3D.hpp" />
+    <ClInclude Include="..\..\..\..\XPG\Module.hpp" />
+    <ClInclude Include="..\..\..\..\XPG\Mutex.hpp" />
+    <ClInclude Include="..\..\..\..\XPG\Network.hpp" />
+    <ClInclude Include="..\..\..\..\XPG\OpenGL.hpp" />
+    <ClInclude Include="..\..\..\..\XPG\Platforms.hpp" />
+    <ClInclude Include="..\..\..\..\XPG\Program.hpp" />
+    <ClInclude Include="..\..\..\..\XPG\Shader.hpp" />
+    <ClInclude Include="..\..\..\..\XPG\Surface.hpp" />
+    <ClInclude Include="..\..\..\..\XPG\Thread.hpp" />
+    <ClInclude Include="..\..\..\..\XPG\Timer.hpp" />
+    <ClInclude Include="..\..\..\..\XPG\Vector3D.hpp" />
+    <ClInclude Include="..\..\..\..\XPG\win32\windows.hpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

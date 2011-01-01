@@ -14,6 +14,12 @@
 #endif
 
 #define SCT static_cast<T>
+
+#ifndef M_PI
+/// Apparently, VS2010 doesn't define PI...?
+#   define M_PI 3.14159265359
+#endif
+
 #define DEG2RAD(n) ((n) * SCT(M_PI) / SCT(180))
 #define RAD2DEG(n) ((n) * SCT(180) / SCT(M_PI))
 
